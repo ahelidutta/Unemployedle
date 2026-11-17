@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unemploydle · Design previews</title>
+<style>
+:root{color-scheme:light;font-family:system-ui,sans-serif;background:#faf6ec;color:#292523}*{box-sizing:border-box}body{max-width:1500px;margin:auto;padding:30px}h1{letter-spacing:-.04em;margin:0 0 10px}p{color:#736455;line-height:1.6}a{color:#8052a4}nav{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0}button{font:inherit;font-size:13px;border:1px solid #29252355;background:#fffdf8;color:inherit;padding:11px 14px;border-radius:10px;cursor:pointer}button[aria-pressed=true]{background:#d8c4ed;color:#292523}button:focus-visible,a:focus-visible{outline:2px solid #bd7a46;outline-offset:4px}.previews{display:grid;grid-template-columns:minmax(0,2.6fr) minmax(0,1fr);gap:24px;align-items:start}figure{margin:0;min-width:0}figcaption{font-size:13px;margin:0 0 12px;color:#736455}img{width:100%;height:auto;display:block;border:1px solid #29252330;border-radius:14px}#motion{border-color:#bd7a4670}small{color:#736455}@media(max-width:700px){body{padding:20px}.previews{grid-template-columns:1fr}figure:last-child{max-width:390px;margin:auto}}
+</style>
+</head>
+<body>
+<h1>Hello, puzzle people.</h1>
+<p>Desktop and mobile previews of the implemented design. <a href="../index.html">Open the interactive page ↗</a></p>
+<nav aria-label="Preview state">
+<button data-state="lunch-wordle" aria-pressed="true">Lunch Break · Wordle</button>
+<button data-state="lunch-connections" aria-pressed="false">Lunch Break · Connections</button>
+<button data-state="night-connections" aria-pressed="false">Night Owls · Connections</button>
+<button data-state="night-worldle" aria-pressed="false">Night Owls · Worldle</button>
+<button data-state="puzzle-board" aria-pressed="false">Puzzle view</button>
+<button data-state="player-week" aria-pressed="false">A friend’s week</button>
+<button id="motion" aria-pressed="false">▶ Play switching walkthrough</button>
+</nav>
+<p id="caption" aria-live="polite">Lunch Break · Wordle. Four scores are in; Riley hasn’t played yet.</p>
+<div class="previews">
+<figure><figcaption>Desktop · 1440px</figcaption><img id="desktop" src="desktop-lunch-wordle.png" alt="Desktop Unemploydle showing Lunch Break Wordle scores"></figure>
+<figure><figcaption>Mobile · 390px</figcaption><img id="mobile" src="mobile-lunch-wordle.png" alt="Mobile Unemploydle showing Lunch Break Wordle scores"></figure>
+</div>
+<p><small>The walkthrough shows Wordle → Connections → Night Owls → Worldle, a cheer for Leo, and the new puzzle-card board. Tap a score on the live page for a seven-day peek. Motion is opt-in here; the live page follows your device’s reduced-motion setting. These previews use the existing sample scores.</small></p>
+<script>
+const caption=document.querySelector('#caption');
+const descriptions={
+'lunch-wordle':'Lunch Break · Wordle. Four scores are in; Riley hasn’t played yet.',
+'lunch-connections':'A game switch: lavender flows into the selected game and shared board. Sam leads with 0 mistakes.',
+'night-connections':'A group switch: Connections stays selected, and Nina, Aheli, and Leo replace the Lunch Break players.',
+'night-worldle':'Night Owls · Worldle. The board shifts to blue; Leo leads with 1/6.',
+'puzzle-board':'Puzzle view turns the shared scores into a set of colorful, tappable cards.',
+'player-week':'Tap a score or friend’s puzzle card for their last seven days, solved puzzles, and average score.'};
+function show(state,motion=false){
+ for(const size of ['desktop','mobile']){const img=document.querySelector('#'+size);img.src=size+'-'+(motion?'interactions.gif':state+'.png');img.alt=(size==='desktop'?'Desktop':'Mobile')+' Unemploydle '+(motion?'animated group and game switching walkthrough':descriptions[state]);}
+ for(const button of document.querySelectorAll('[data-state]'))button.setAttribute('aria-pressed',String(!motion&&button.dataset.state===state));
+ document.querySelector('#motion').setAttribute('aria-pressed',String(motion));
+ caption.textContent=motion?'Watch score tiles arrive, settle, and pulse as games and groups change. Choose a still preview to stop.':descriptions[state];
+}
+for(const button of document.querySelectorAll('[data-state]'))button.addEventListener('click',()=>show(button.dataset.state));
+document.querySelector('#motion').addEventListener('click',()=>show('lunch-wordle',document.querySelector('#motion').getAttribute('aria-pressed')!=='true'));
+</script>
+</body>
+</html>
