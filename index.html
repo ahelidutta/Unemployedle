@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unemploydle — Daily puzzle clubhouse</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  color-scheme: dark;
+  --canvas: #0d0c15;
+  --surface: #15131f;
+  --line: #ffffff13;
+  --text: #f6f3ff;
+  --muted: #aba5bb;
+  --accent: #c5acff;
+  font-family: Inter, system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: radial-gradient(ellipse at 90% 0%, #241735 0%, transparent 48%), radial-gradient(ellipse at 35% 93%, #111a30, transparent 50%), var(--canvas); color: var(--text); min-height: 100vh; }
+button { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+a { color: inherit; }
+[hidden] { display: none !important; }
+header { border-bottom: 1px solid var(--line); background: #100e19bc; }
+.bar, main { max-width: 1220px; margin: auto; padding-inline: 36px; }
+.bar { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.brand { display: flex; align-items: center; gap: 11px; font: 700 23px 'Space Grotesk', sans-serif; letter-spacing: -.06em; text-decoration: none; }
+.logo { width: 33px; height: 33px; border-radius: 10px; background: #bc9af9; color: #221330; display: grid; place-items: center; font-size: 19px; }
+.groups { margin-bottom: 22px; min-width: 0; }
+.groups-label { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+.group-buttons { display: flex; gap: 8px; overflow-x: auto; padding: 5px; margin: -5px; scrollbar-width: thin; }
+.group-button { flex: 0 0 auto; white-space: nowrap; padding: 10px 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); }
+.group-button:hover { border-color: var(--accent); color: var(--text); }
+.group-button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #251638; font-weight: 600; }
+main { padding-block: 36px 46px; }
+.hero { position: relative; isolation: isolate; overflow: hidden; border: 1px solid #bd95ff48; border-radius: 25px; min-height: 312px; display: flex; align-items: center; padding: 39px 47px; background: radial-gradient(ellipse at 81% 25%, #6b3690 0%, transparent 51%), radial-gradient(ellipse at 67% 103%, #25466c, transparent 49%), linear-gradient(110deg, #211536 16%, #35224d 70%, #2b2149); }
+.hero::before { content: ''; position: absolute; inset: 0; z-index: -2; opacity: .3; background: radial-gradient(circle, #dfcaff57 1px, transparent 1px) 0 0 / 19px 19px; mask-image: linear-gradient(90deg,transparent 33%,black); }
+.hero-copy { width: min(100%, 460px); z-index: 1; }
+.date { color: #e0cdff; font: 600 12px 'Space Grotesk', sans-serif; letter-spacing: .11em; text-transform: uppercase; }
+h1, h2, h3, p { margin: 0; }
+h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+h1 { font-size: clamp(44px, 6vw, 76px); letter-spacing: -.078em; line-height: .94; margin: 15px 0 16px; }
+.hero p { color: #dfd2ed; font-size: 15px; line-height: 1.5; }
+.cta { display: inline-flex; align-items: center; gap: 11px; padding: 11px 15px; background: #eee2ff; color: #251638; border-radius: 10px; text-decoration: none; margin-top: 21px; font-size: 13px; font-weight: 700; }
+.cta:hover { background: white; }
+.art { position: absolute; right: 10%; top: 51%; transform: translateY(-50%) rotate(-15deg) skew(5deg); display: grid; grid-template-columns: repeat(3, 69px); gap: 10px; z-index: -1; }
+.tile { height: 69px; border-radius: 15px; display: grid; place-items: center; background: linear-gradient(145deg, #ad8ffc, #7354c8); border: 1px solid #ffffff62; box-shadow: 0 8px 0 #493380, 0 14px 24px #1b113a90, inset 0 1px 5px #ffffff46; color: #2d2155; font: 700 36px 'Space Grotesk', sans-serif; }
+.tile:nth-child(1), .tile:nth-child(9) { background: #51386d90; box-shadow: 0 7px 0 #36264f; color: #d5b9f7; }
+.tile:nth-child(3), .tile:nth-child(7) { background: linear-gradient(145deg,#9afbdf,#46b6ac); box-shadow: 0 8px 0 #287070,0 14px 24px #1b113a90; color: #174b4b; }
+.tile:nth-child(5) { background: linear-gradient(145deg,#ffc8ed,#db82c7); box-shadow: 0 8px 0 #8b468c,0 14px 24px #1b113a90; color: #612c61; }
+.tile:nth-child(6) { background: linear-gradient(145deg,#bad4ff,#789eee); box-shadow: 0 8px 0 #455ca0,0 14px 24px #1b113a90; color: #263e71; }
+.tile:nth-child(1) { transform: translate(-13px,-8px); }
+.tile:nth-child(3) { transform: translate(12px,-13px); }
+.tile:nth-child(7) { transform: translate(-13px,7px); }
+.layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(285px, 1fr); gap: 25px; margin-top: 31px; align-items: start; }
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+h2 { font-size: 25px; letter-spacing: -.05em; }
+.section-meta { color: var(--muted); font-size: 12px; }
+.games { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.game { --game: #c5acff; --game-rgb: 197 172 255; text-align: left; color: var(--text); border: 1px solid var(--line); border-radius: 15px; padding: 15px; display: grid; grid-template-columns: 39px minmax(0, 1fr) auto; align-items: center; gap: 11px; min-height: 83px; background: linear-gradient(112deg, rgb(var(--game-rgb) / .065), transparent 88%), var(--surface); transition: background-color .18s, border-color .18s; }
+.game:hover, .game[aria-pressed="true"] { border-color: rgb(var(--game-rgb) / .65); background-color: #1d192b; }
+[data-game="wordle"] { --game: #9ae4a1; --game-rgb: 154 228 161; }
+[data-game="connections"] { --game: #d6b3fc; --game-rgb: 214 179 252; }
+[data-game="quillion"] { --game: #ffc385; --game-rgb: 255 195 133; }
+[data-game="worldle"] { --game: #8edaff; --game-rgb: 142 218 255; }
+.game-icon { width: 39px; height: 39px; border: 1px solid rgb(var(--game-rgb) / .22); border-radius: 10px; color: var(--game); background: rgb(var(--game-rgb) / .12); display: grid; place-items: center; font: 700 20px 'Space Grotesk', sans-serif; }
+.game-title { font: 700 16px 'Space Grotesk', sans-serif; display: block; }
+.game-meta { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+.arrow { color: var(--game); }
+.board { border: 1px solid var(--line); border-radius: 15px; background: var(--surface); overflow: hidden; }
+.board-head, .board-foot { padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.board-head { border-bottom: 1px solid var(--line); }
+.board h3 { font-size: 16px; }
+.preview { font-size: 10px; border: 1px solid #ffffff1b; border-radius: 20px; padding: 4px 8px; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th, td { padding: 8px 10px; text-align: left; }
+th:first-child, td:first-child { padding-left: 15px; }
+th:last-child, td:last-child { padding-right: 15px; }
+th { font-size: 10px; color: var(--muted); font-weight: 500; }
+td { border-top: 1px solid #ffffff0a; }
+.rank { color: var(--muted); width: 35px; }
+.player { font-weight: 600; white-space: nowrap; }
+.avatar { width: 23px; height: 23px; border-radius: 7px; background: var(--avatar); color: #23162e; display: inline-grid; place-items: center; margin-right: 7px; font-size: 10px; }
+.score { color: var(--game); font-weight: 700; white-space: nowrap; }
+.streak { white-space: nowrap; }
+.board-foot { border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.board-foot a { color: var(--game); font-weight: 600; }
+@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 650px) {
+  .bar, main { padding-inline: 16px; }
+  .brand { font-size: 20px; }
+  main { padding-top: 19px; }
+  .hero { padding: 28px 23px; min-height: 262px; }
+  .art { right: -55px; transform: translateY(-50%) rotate(-15deg) scale(.65); opacity: .31; }
+  .hero::before { mask-image: linear-gradient(90deg,transparent 5%,black); }
+  .layout { margin-top: 23px; }
+  .game { grid-template-columns: 33px minmax(0, 1fr); padding: 10px; gap: 8px; }
+  .game-icon { width: 33px; height: 33px; }
+  .game-title { font-size: 14px; }
+  .arrow { display: none; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <a class="brand" href="./index.html"><span class="logo" aria-hidden="true">✦</span>unemploydle</a>
+  </div>
+</header>
+<main>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <div class="date" id="date"></div>
+      <h1 id="hero-title">Puzzle break.</h1>
+      <p>See how your friends did on today’s puzzles.</p>
+      <a class="cta" href="#today">Today’s games <span aria-hidden="true">↓</span></a>
+    </div>
+    <div class="art" aria-hidden="true">
+      <span class="tile">✧</span><span class="tile">U</span><span class="tile">+</span>
+      <span class="tile">D</span><span class="tile">✦</span><span class="tile">L</span>
+      <span class="tile">◈</span><span class="tile">E</span><span class="tile">·</span>
+    </div>
+  </section>
+  <div class="layout" id="today">
+    <section aria-labelledby="games-title">
+      <div class="groups">
+        <h3 class="groups-label" id="groups-label">Your groups</h3>
+        <div class="group-buttons" id="groups" role="group" aria-labelledby="groups-label"></div>
+      </div>
+      <div class="section-head"><h2 id="games-title">Today’s games</h2><span class="section-meta" id="game-count"></span></div>
+      <div class="games" id="games"></div>
+    </section>
+    <section aria-labelledby="board-title">
+      <div class="section-head"><h2 id="board-title">Leaderboard</h2><span class="section-meta">Today</span></div>
+      <div class="board" id="board" aria-live="polite"></div>
+    </section>
+  </div>
+</main>
+<template id="game-template">
+  <button class="game" type="button" aria-pressed="false">
+    <span class="game-icon" aria-hidden="true"></span>
+    <span><span class="game-title"></span><span class="game-meta"></span></span>
+    <span class="arrow" aria-hidden="true">›</span>
+  </button>
+</template>
+<script>
+const games = {
+  wordle: { name: "Wordle", icon: "W", url: "https://www.nytimes.com/games/wordle/index.html" },
+  connections: { name: "Connections", icon: "⠿", url: "https://www.nytimes.com/games/connections" },
+  quillion: { name: "The Quillion", icon: "Q" },
+  worldle: { name: "Worldle", icon: "◎" },
+};
+
+const groups = {
+  lunch: {
+    name: "Lunch Break",
+    members: ["Maya", "Aheli", "Sam", "Jordan", "Riley"],
+    games: {
+      wordle: [["Maya", "2/6", 12], ["Aheli", "3/6", 8], ["Sam", "4/6", 5], ["Jordan", "5/6", 3]],
+      connections: [["Sam", "0 mistakes", 9], ["Aheli", "1 mistake", 4], ["Riley", "2 mistakes", 3]],
+      quillion: [["Jordan", "98 pts", 6], ["Maya", "92 pts", 5]],
+      worldle: [["Riley", "2/6", 6], ["Sam", "3/6", 3], ["Maya", "4/6", 2]],
+    },
+  },
+  night: {
+    name: "Night Owls",
+    members: ["Aheli", "Nina", "Leo"],
+    games: {
+      connections: [["Nina", "0 mistakes", 7], ["Aheli", "1 mistake", 4]],
+      worldle: [["Leo", "1/6", 10], ["Nina", "4/6", 4]],
+    },
+  },
+};
+
+const groupButtons = document.querySelector("#groups");
+const groupStorageKey = "unemploydle:lastGroup";
+let activeGroup = "lunch";
+let selectedGame;
+try {
+  const savedGroup = localStorage.getItem(groupStorageKey);
+  if (Object.hasOwn(groups, savedGroup)) activeGroup = savedGroup;
+} catch { /* Keep the default when storage is unavailable. */ }
+const gameList = document.querySelector("#games");
+const board = document.querySelector("#board");
+const template = document.querySelector("#game-template");
+const colors = ["#dab8ff", "#a1d9f4", "#a7e2bc", "#f2bdac", "#e3b1d8"];
+
+document.querySelector("#date").textContent = new Intl.DateTimeFormat("en-US", {
+  weekday: "long", month: "long", day: "numeric",
+}).format(new Date());
+
+function selectGame(gameId) {
+  selectedGame = gameId;
+  const group = groups[activeGroup];
+  const game = games[gameId];
+  const results = group.games[gameId];
+  const waiting = group.members.filter((name) => !results.some(([player]) => player === name));
+  board.dataset.game = gameId;
+  for (const button of gameList.children) {
+    button.setAttribute("aria-pressed", String(button.dataset.game === gameId));
+  }
+
+  // All interpolated values are fixed demo data declared above.
+  board.innerHTML = `
+    <div class="board-head"><h3>${game.name}</h3><span class="preview">Sample scores</span></div>
+    <table aria-label="${game.name} scores">
+      <thead><tr><th scope="col">#</th><th scope="col">Player</th><th scope="col">Score</th><th scope="col">Streak</th></tr></thead>
+      <tbody>${[...results, ...waiting.map((name) => [name, "", null])].map(([name, score, streak], index) => `
+        <tr>
+          <td class="rank">${score ? index + 1 : "—"}</td>
+          <td class="player"><span class="avatar" aria-hidden="true" style="--avatar:${colors[group.members.indexOf(name) % colors.length]}">${name[0]}</span>${name}</td>
+          <td class="${score ? "score" : "section-meta"}">${score || "Pending"}</td>
+          <td class="streak">${streak === null ? "—" : streak + " days"}</td>
+        </tr>`).join("")}</tbody>
+    </table>
+    <div class="board-foot"><span>${results.length} of ${group.members.length} played</span>
+      ${game.url ? `<a href="${game.url}" target="_blank" rel="noopener">Play ${game.name}</a>` : ""}
+    </div>`;
+}
+
+function renderGroup() {
+  const group = groups[activeGroup];
+  const gameIds = Object.keys(group.games);
+  document.querySelector("#game-count").textContent = `${gameIds.length} games`;
+  gameList.replaceChildren();
+  for (const gameId of gameIds) {
+    const game = games[gameId];
+    const button = template.content.firstElementChild.cloneNode(true);
+    button.dataset.game = gameId;
+    button.querySelector(".game-icon").textContent = game.icon;
+    button.querySelector(".game-title").textContent = game.name;
+    button.querySelector(".game-meta").textContent = `${group.games[gameId].length} of ${group.members.length} played`;
+    button.addEventListener("click", () => selectGame(gameId));
+    gameList.append(button);
+  }
+  for (const button of groupButtons.children) {
+    button.setAttribute("aria-pressed", String(button.dataset.group === activeGroup));
+  }
+  selectGame(gameIds.includes(selectedGame) ? selectedGame : gameIds[0]);
+}
+
+for (const [groupId, group] of Object.entries(groups)) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "group-button";
+  button.dataset.group = groupId;
+  button.textContent = group.name;
+  button.addEventListener("click", () => {
+    activeGroup = groupId;
+    try { localStorage.setItem(groupStorageKey, activeGroup); } catch { /* Switching still works without storage. */ }
+    renderGroup();
+  });
+  groupButtons.append(button);
+}
+renderGroup();
+</script>
+</body>
+</html>
