@@ -38,10 +38,13 @@ async function click(selector) {
   await call('Input.dispatchMouseEvent', { type: 'mousePressed', ...rect, button: 'left', clickCount: 1 });
   await call('Input.dispatchMouseEvent', { type: 'mouseReleased', ...rect, button: 'left', clickCount: 1 });
 }
-async function navigate() {
+async function navigate(listView = true) {
   await call('Page.navigate', { url: pathToFileURL(path.resolve('index.html')).href });
   for (let attempt = 0; attempt < 100; attempt++) {
-    if (await run('document.querySelector("#board tbody") !== null')) return;
+    if (await run('document.querySelector("#board tbody") !== null')) {
+      if (listView) await run('document.querySelector("[data-view=rows]").click()');
+      return;
+    }
     await pause(50);
   }
   throw Error('Page did not initialize');
@@ -113,13 +116,38 @@ try {
   await navigate();
   assert.equal(await run('document.querySelector("#board").dataset.group'), 'night');
   await click('.stats-link');
-  assert.equal(await run('document.querySelector("#group-stats").open'), true);
-  await run('document.querySelector("#stats-games").children[1].click(); document.querySelector(`[data-period="7"]`).click()');
+  assert.equal(await run('document.querySelector("#group-stats").closest(".board-shell").querySelector("#board") === document.querySelector("#board")'), true);
+  assert.equal(await run('statsGame'), 'connections');
+  assert.equal(await run('document.querySelectorAll(".compare-row").length'), 3);
+  assert.equal(await run('document.querySelector("#pair-comparison")'), null);
+  assert.equal(await run('document.querySelector("#comparison-metrics")'), null);
+  assert.doesNotMatch(await run('document.querySelector("#group-stats").textContent'), /Solve rate|Average score|face-off/i);
+  const ninaDays = await run('daysLed(filteredHistory(),"Nina")');
+  assert.equal(await run('document.querySelector(`.standing-badge[data-standings-player="Nina"]`).textContent.trim()'), `${ninaDays} ${ninaDays===1?'day':'days'} in first`);
+  assert.match(await run('document.querySelector("#leader-story").textContent'), /in first/);
+  await click('.shared-history > summary');
   assert.equal(await run('document.querySelectorAll(".heatmap .day").length'), 21);
-  assert.match(await run('document.querySelector("#player-stats").textContent'), /mistakes/);
-  await run('document.querySelector(".heatmap").lastElementChild.click()');
+  await run('document.querySelector(".heatmap td:last-child .day").click()');
   assert.match(await run('document.querySelector("#day-detail").textContent'), /Aheli.*1 mistake/s);
-  assert.equal(await run(`statsGame='wordle'; average([{value:2,won:true},{value:4,won:true},{value:7,won:false}])`), '3.0 guesses');
+  assert.match(await run('document.querySelector("#day-detail").textContent'), /Nina.*0 mistakes.*Leo.*No play recorded/s);
+  assert.equal(await run('document.querySelectorAll(".matrix-table .day[aria-pressed=true]").length'), 3);
+  await click('.compare-row[data-player=Nina]');
+  assert.equal(await run('document.querySelector(`.heatmap[data-player="Nina"]`).dataset.highlight'), 'true');
+  assert.equal(await run('document.querySelector(`.mosaic-card[data-player="Nina"]`).closest(".mosaic-piece").dataset.highlight'), 'true');
+  assert.match(await run('document.querySelector("#standings-selection").textContent'), /Nina.*in first/);
+  assert.deepEqual(await run('standingSummary([{name:"A",led:4},{name:"B",led:4},{name:"C",led:3}]).leaders.map(r=>r.name)'), ['A','B']);
+  assert.equal(await run('standingSummary([{name:"A",led:0},{name:"B",led:0}]).leaders.length'), 0);
+  await run('document.querySelector(`[data-period="28"]`).click()');
+  assert.equal(await run('document.querySelectorAll(".heatmap .day").length'), 84);
+  assert.equal(await run('document.querySelector(`.standing-badge[data-standings-player="Nina"]`).textContent.includes(daysLed(filteredHistory(),"Nina"))'), true);
+  await click('[data-standing-scope=all]');
+  assert.equal(await run('statsGame'), 'all');
+  await run('document.querySelector("#games [data-game=worldle]").click()');
+  assert.equal(await run('statsGame'), 'all');
+  await click('[data-standing-scope=game]');
+  assert.equal(await run('statsGame'), 'worldle');
+  assert.match(await run('document.querySelector("#comparison-scope").textContent'), /Worldle.*28 days/);
+  await run('document.querySelector(`[data-period="7"]`).click()');
   assert.equal(await run(`daysLed([{player:'A',date:'d1',game:'wordle',value:2,won:true},{player:'B',date:'d1',game:'wordle',value:2,won:true},{player:'A',date:'d1',game:'connections',value:0,won:true}], 'A')`), 1);
   await call('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
   await run('document.querySelector("[data-group=lunch]").click(); document.querySelector("#games [data-game=wordle]").click()');
@@ -130,32 +158,62 @@ try {
   assert.equal(await run('document.querySelectorAll(".sparkle").length'), 0);
   assert.match(await run('document.querySelector("#board tbody").textContent'), /Maya/);
   await call('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }] });
-  for (const width of [320, 390, 768, 1440]) {
+  for (const width of [320, 375, 390, 768, 1024, 1440]) {
     await call('Emulation.setDeviceMetricsOverride', { width, height: 844, deviceScaleFactor: 1, mobile: width < 700 });
     assert.equal(await run('document.documentElement.scrollWidth <= innerWidth'), true, `overflow at ${width}px`);
   }
   // A normal phone viewport should bring offscreen scores into view after a game tap.
   await call('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
-  await run('document.querySelector("#group-stats").open=false; window.scrollTo(0,0)');
+  await run('document.querySelector(".shared-history").open=false; window.scrollTo(0,0)');
   await click('#games [data-game=connections]');
   await pause(900);
   assert.ok(await run('document.querySelector(".board-section").getBoundingClientRect().top < 200'));
   assert.ok(await run('document.querySelector(".groups").getBoundingClientRect().top >= 0'));
   await click('[data-group=night]');
   assert.equal(await run('document.querySelector("#board").dataset.group'), 'night');
+  // The new shared board opens in Pieces mode. Cheers must sync with List mode.
+  await navigate(false);
+  await run('document.querySelector("[data-group=lunch]").click()');
+  assert.equal(await run('boardView'), 'tiles');
+  assert.equal(await run('document.querySelector("#completion-fraction").textContent'), '12/20');
+  await click('.mosaic .cheer');
+  assert.equal(await run('document.querySelector(".mosaic .cheer").getAttribute("aria-pressed") === document.querySelector("table .cheer").getAttribute("aria-pressed")'), true);
+  await click('[data-view=rows]');
+  await click('[data-view=tiles]');
+  await click('.mosaic-card');
+  assert.equal(await run('document.querySelector("#score-dialog").open'), true);
+  await click('.dialog-close');
+  assert.equal(await run('document.activeElement.classList.contains("mosaic-card")'), true);
+  // Layout remains usable in landscape and with the WCAG text-spacing overrides.
+  await call('Emulation.setDeviceMetricsOverride', {width:844,height:390,deviceScaleFactor:1,mobile:true});
+  assert.equal(await run('document.documentElement.scrollWidth <= innerWidth'), true);
+  await call('Emulation.setDeviceMetricsOverride', {width:375,height:844,deviceScaleFactor:1,mobile:true});
+  await run(`document.querySelector('main').insertAdjacentHTML('beforeend', '<style id="spacing-test">*{letter-spacing:.12em!important;word-spacing:.16em!important;line-height:1.5!important}p{margin-bottom:2em!important}</style>')`);
+  assert.equal(await run('document.documentElement.scrollWidth <= innerWidth'), true);
+  await run('document.querySelector("#spacing-test").remove()');
+  await click('[data-stats-link]');
+  assert.equal(await run('document.querySelectorAll(".compare-row").length'), 5);
+  assert.equal(await run('document.querySelectorAll(".matrix-table .heatmap").length'), 5);
+  await run('document.querySelector(".shared-history").open=true');
+  assert.equal(await run('document.querySelector("#group-calendar").scrollWidth <= document.querySelector("#group-calendar").clientWidth'), true, 'the seven-day matrix should fit a 375px phone');
+  // Check the principal semantic color pairs independently of screenshots.
+  function luminance(hex) {const rgb=hex.match(/[a-f0-9]{2}/gi).map(x=>parseInt(x,16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;}
+  function contrast(a,b){const l=[luminance(a),luminance(b)].sort((a,b)=>b-a);return(l[0]+.05)/(l[1]+.05);}
+  for(const [ink,surface] of [['#172b45','#f1f4fc'],['#52617a','#ffffff'],['#ffffff','#1652cc'],['#283d21','#dcf139'],['#fffdf4','#006e59'],['#fffdf4','#1b52d9'],['#fffdf4','#bf3f22'],['#fffdf4','#7b33be'],['#fffdf4','#b62c6a'],['#fffdf4','#006f94'],['#fffdf4','#b13c56'],['#071c2f','#ef512e']])assert.ok(contrast(ink,surface)>=4.5, `${ink} on ${surface}`);
   assert.equal(errors.length, 0, JSON.stringify(errors));
-  console.log('PASS: score accuracy, group/game switching, shared-game retention, fallback, rapid input, keyboard, persistence, stats, saved cheers, score-week dialogs, puzzle view, surprise picks, reduced motion, 320–1440px layouts.');
+  console.log('PASS: score accuracy, group/game switching, shared-game retention, fallback, rapid input, keyboard, persistence, connected first-place standings, tied leaders, synchronized board badges, aligned activity, saved cheers, score-week dialogs, puzzle view, surprise picks, reduced motion, synced piece/list cheers, dialog focus return, contrast pairs, text spacing, landscape, 320–1440px layouts.');
 
   if (process.env.CAPTURE_PREVIEWS === '1') {
     fs.mkdirSync('previews', { recursive: true });
     fs.mkdirSync('/private/tmp/unemploydle-capture', { recursive: true });
-    async function shot(name, full = false) {
+    async function shot(name, full = false, selector = null) {
       let clip;
       if (full) {
         const metrics = await call('Page.getLayoutMetrics');
         clip = { x: 0, y: 0, width: metrics.cssContentSize.width, height: metrics.cssContentSize.height, scale: 1 };
       }
-      const result = await call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, ...(clip ? {clip} : {}) });
+      if(selector) clip=await run(`(() => {const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.x+scrollX,y:r.y+scrollY,width:r.width,height:r.height,scale:1};})()`);
+      const result = await call('Page.captureScreenshot' , { format: 'png', captureBeyondViewport: true, ...(clip ? {clip} : {}) });
       fs.writeFileSync(full ? `previews/${name}.png` : `/private/tmp/unemploydle-capture/${name}.png`, Buffer.from(result.data, 'base64'));
       return result.data;
     }
@@ -172,8 +230,8 @@ try {
     }
     for (const [name,width,height] of [['desktop',1440,1350],['mobile',390,1650]]) {
       await call('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: name === 'mobile' });
-      await navigate();
-      await run('document.querySelector("[data-group=lunch]").click(); document.querySelector("#games [data-game=wordle]").click(); cancelBoardMotion(); document.querySelector("#group-stats").open=false; window.scrollTo(0,0)');
+      await navigate(false);
+      await run('document.querySelector("[data-group=lunch]").click(); document.querySelector("#games [data-game=wordle]").click(); cancelBoardMotion(); document.querySelector(".shared-history").open=false; window.scrollTo(0,0)');
       await pause(450);
       await shot(`${name}-lunch-wordle`,true);
       const initial = {image:await shot(`${name}-home-frame`),delay:1300};
@@ -193,6 +251,10 @@ try {
       await run('document.querySelector(".mosaic-card").click()');
       await shot(`${name}-player-week`);
       await run('document.querySelector("#score-dialog").close()');
+      await run('document.querySelector("[data-group=lunch]").click(); document.querySelector("#games [data-game=wordle]").click();cancelBoardMotion();standingScope="game";statsGame=selectedGame;statsPeriod=7;renderStats();window.scrollTo(0,0)');
+      await pause(450);
+      await shot(`${name}-group-stats`,true,'.board-shell');
+
 
     }
     console.log('Captured desktop/mobile states and interaction frames.');

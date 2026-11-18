@@ -4,259 +4,437 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Unemploydle — Daily puzzle clubhouse</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Fraunces:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap">
 <style>
-@property --board-color { syntax: '<color>'; inherits: true; initial-value: #9ae4a1; }
-:root { color-scheme: light; --canvas:#faf6ec; --surface:#fffdf8; --line:#29252326; --text:#292523; --muted:#716961; --accent:#7854b5; --board-color:#9ae4a1; font-family:'DM Sans',Inter,system-ui,sans-serif; }
+@property --board-color { syntax:'<color>'; inherits:true; initial-value:#176d5e; }
+:root {
+ color-scheme:light;
+ --paper:#f1f4fc; --white:#fff; --ink:#172b45; --ink-soft:#52617a; --primary:#1652cc; --primary-soft:#e5edff; --signal:#dcf139; --teal:#006e59; --coral:#ef512e; --saffron:#ffd12f; --cobalt:#1b52d9; --aubergine:#7b33be; --purple:var(--primary); --lavender:var(--primary-soft); --lilac:var(--signal); --mint:var(--teal); --peach:var(--coral); --butter:var(--saffron); --sky:var(--cobalt); --stroke:#d4ddef; --danger:#a43c3f;
+ --canvas:var(--paper); --surface:var(--white); --text:var(--ink); --muted:var(--ink-soft); --line:var(--stroke); --accent:var(--purple); --board-color:#176d5e;
+ --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-6:24px; --space-8:32px; --space-12:48px;
+ --radius:24px; --piece-radius:16px; --surface-shadow:0 4px 20px #233f3507; --piece-shadow:inset 0 1px 0 #ffffff40,inset 0 -2px 0 #102f3218,0 3px 0 #173e3326;
+ --duration-press:160ms; --duration-state:240ms; --ease:cubic-bezier(.2,.8,.2,1);
+ font-family:Nunito,system-ui,sans-serif; font-size:16px; line-height:1.5;
+}
 * { box-sizing:border-box; }
-body { margin:0; min-height:100vh; color:var(--text); background:radial-gradient(ellipse at 100% 0%,#f9dfc060,transparent 40%),var(--canvas); }
-button { font:inherit; cursor:pointer; color:inherit; }
+body { margin:0; background:radial-gradient(ellipse at 100% 0%,#fee14b35,transparent 35%),radial-gradient(ellipse at 0% 40%,#80c8ff20,transparent 38%),var(--canvas); color:var(--text); min-height:100dvh; }
+button { font:inherit; color:inherit; cursor:pointer; touch-action:manipulation; }
 button,a { -webkit-tap-highlight-color:transparent; }
 a { color:inherit; }
-button:focus-visible,a:focus-visible,summary:focus-visible { outline:3px solid #7953b6; outline-offset:4px; }
+button:focus-visible,a:focus-visible,summary:focus-visible { outline:3px solid #126655; outline-offset:4px; }
 [hidden] { display:none!important; }
 h1,h2,h3,p { margin:0; }
-h1,h2,h3 { font-family:'DM Sans',system-ui,sans-serif; }
-header { border-bottom:1px solid var(--line); }
-.bar,main { max-width:1280px; padding-inline:42px; margin:auto; }
-.bar { min-height:77px; display:flex; justify-content:space-between; align-items:center; gap:15px; }
-.brand { display:flex; align-items:center; gap:11px; text-decoration:none; font:700 29px Fraunces,Georgia,serif; letter-spacing:-.06em; }
-.logo { display:grid; place-items:center; background:#f7ae77; color:#292523; width:32px; height:34px; font:700 24px Georgia,serif; border:1.5px solid #292523; border-radius:8px; box-shadow:2px 2px 0 #292523; transform:rotate(-8deg); }
-.header-note { font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px; }
-.header-note::before { content:'✳'; color:#d06b3f; font-size:23px; }
-main { padding-block:30px 35px; transition:--board-color .35s; }
-.page-head { display:flex; justify-content:space-between; align-items:center; gap:25px; margin-bottom:26px; }
-.title-kicker { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.11em; margin-bottom:12px; color:#8f5034; }
-h1 { font:600 clamp(36px,4.6vw,61px)/1.02 Fraunces,Georgia,serif; letter-spacing:-.065em; }
-h1 em { font-style:normal; position:relative; color:#8052a4; }
-.day-art { display:flex; align-items:center; gap:33px; }
-.day-sticker { position:relative; display:grid; place-items:center; width:92px; height:92px; background:#f8ca62; clip-path:polygon(50% 0%,61% 8%,75% 4%,81% 18%,96% 25%,92% 39%,100% 50%,92% 62%,96% 75%,80% 81%,75% 96%,61% 92%,50% 100%,38% 92%,25% 96%,19% 81%,4% 75%,8% 62%,0% 50%,8% 38%,4% 25%,19% 19%,25% 4%,38% 8%); transform:rotate(12deg); text-align:center; font:700 13px/1.2 'DM Sans',sans-serif; }
-.date { display:flex; align-items:center; gap:14px; padding:13px 17px; border:1.5px solid #292523; border-radius:13px; background:#fffdf8; box-shadow:3px 3px 0 #e5d7c5; flex-shrink:0; }
-.calendar-mark { display:grid; place-items:center; width:34px; height:40px; border:1.5px solid #292523; border-radius:6px; background:#f7ae77; font:700 20px Fraunces,Georgia,serif; padding-top:7px; position:relative; }
-.calendar-mark::before { content:''; position:absolute; top:8px; left:0; right:0; border-top:1.5px solid #292523; }
-.date-weekday { display:block; font-size:10px; text-transform:uppercase; letter-spacing:.1em; margin-bottom:4px; color:#815c45; font-weight:700; }
-.date-day { display:block; font:600 21px Fraunces,Georgia,serif; }
-.groups { display:flex; align-items:center; gap:21px; padding:20px 0 23px; border-block:1px solid var(--line); }
-.groups-label { flex-shrink:0; font-size:12px; font-weight:600; }
-.group-buttons { display:flex; gap:12px; overflow-x:auto; padding:5px 6px 8px; margin:-5px -6px -8px; scrollbar-width:thin; }
-.group-button { flex:0 0 auto; display:flex; align-items:center; gap:10px; min-height:44px; padding:10px 16px; border:1.5px solid #292523; border-radius:30px; background:#fffdf8; color:#524a43; box-shadow:0 3px 0 #d5c9b9; transition:transform .15s,box-shadow .15s,background .15s; }
-.group-button:hover { transform:translateY(-2px) rotate(-1deg); }
-.group-button:active { transform:translateY(3px); box-shadow:none; }
-.group-button[aria-pressed=true] { background:#d8c4ed; color:#292523; font-weight:700; box-shadow:0 3px 0 #292523; }
-.group-symbol { font-size:21px; line-height:1; }
-.group-count { display:grid; place-items:center; width:20px; height:20px; border-radius:50%; background:#2925230d; font-size:10px; }
-.activity { display:flex; justify-content:space-between; align-items:center; gap:16px; margin:22px 0 28px; }
-.activity-copy { display:flex; align-items:center; gap:13px; min-width:0; }
-.friend-stack { display:flex; flex-shrink:0; }
-.friend-stack .avatar { margin:0 0 0 -4px; border:2px solid var(--canvas); width:31px; height:32px; transform:rotate(var(--tilt)); }
-.activity h2 { font-size:16px; letter-spacing:-.025em; }
-.activity p { color:var(--muted); font-size:11px; margin-top:5px; line-height:1.5; }
-.stats-link { display:flex; align-items:center; gap:8px; min-height:41px; font-size:12px; font-weight:700; text-decoration:none; padding:10px 14px; border:1.5px solid #292523; border-radius:9px; background:#fffdf8; box-shadow:2px 2px 0 #d5c9b9; white-space:nowrap; }
-.stats-link:hover { background:#f7e1cd; }
-.layout { display:grid; grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr); gap:35px; align-items:start; }
-.section-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:17px; }
-h2 { font-size:21px; font-weight:700; letter-spacing:-.045em; }
-.section-meta { color:var(--muted); font-size:11px; }
+h1,h2,h3 { line-height:1.2; }
+h1,h2 { font-family:Fredoka,Nunito,sans-serif; font-weight:500; letter-spacing:-.025em; }
+h3 { font-weight:800; }
+button,a,summary { scroll-margin-block:120px 24px; }
+.ui-icon { display:inline-block; width:20px; height:20px; vertical-align:middle; flex:0 0 auto; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.icon-defs { position:absolute; width:0; height:0; overflow:hidden; }
+.skip-link { position:fixed; top:-80px; left:16px; background:var(--purple); color:white; z-index:100; padding:12px 20px; border-radius:12px; }
+.skip-link:focus { top:12px; }
+header { background:#fff9; border-bottom:1px solid #d9dbd1; }
+.bar,main { max-width:1328px; margin:auto; padding-inline:48px; }
+.bar { min-height:80px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.brand { font-family:Fredoka,Nunito,sans-serif; font-size:28px; font-weight:500; letter-spacing:-.045em; display:flex; align-items:center; gap:10px; text-decoration:none; }
+.logo { width:36px; height:38px; display:grid; place-items:center; border-radius:12px; background:var(--lilac); color:var(--purple); box-shadow:var(--piece-shadow); transform:rotate(-7deg); }
+.logo .ui-icon { width:25px; height:25px; }
+.short-nav-label { display:none; }
+.top-nav { display:flex; align-items:center; gap:12px; }
+.top-link { display:flex; align-items:center; gap:8px; text-decoration:none; padding:10px 16px; min-height:44px; border-radius:12px; color:var(--muted); font-size:14px; font-weight:800; }
+.top-link[aria-current] { color:var(--purple); background:var(--lavender); }
+.top-link:hover { background:var(--lavender); color:var(--purple); }
+main { padding-block:32px 36px; transition:--board-color var(--duration-state); }
+.page-head { display:flex; justify-content:space-between; align-items:center; gap:24px; margin-bottom:32px; }
+.title-kicker { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); font-weight:800; margin-bottom:8px; }
+.title-kicker .ui-icon { color:#a06c28; width:17px; height:17px; }
+h1 { font-size:clamp(32px,3.5vw,46px); line-height:1.08; }
+h1 em { font-style:normal; color:var(--purple); }
+.day-art { display:flex; align-items:center; gap:32px; }
+.cover-stack { position:relative; width:115px; height:88px; }
+.cover-stack i { display:grid; place-items:center; position:absolute; width:48px; height:50px; border:2px solid #ffffffa6; border-radius:14px; box-shadow:var(--piece-shadow); font:500 25px Fredoka,sans-serif; font-style:normal; }
+.cover-stack i:nth-child(1) { top:0; left:0; background:var(--butter); transform:rotate(-12deg); }
+.cover-stack i:nth-child(2) { top:5px; right:2px; background:var(--lilac); transform:rotate(12deg); }
+.cover-stack i:nth-child(3) { bottom:0; left:12px; background:var(--mint); transform:rotate(-6deg); }
+.cover-stack i:nth-child(4) { bottom:-4px; right:0; background:var(--peach); transform:rotate(8deg); }
+.date { display:flex; gap:12px; align-items:center; border-left:1px solid var(--line); padding-left:24px; flex-shrink:0; }
+.calendar-mark { display:grid; place-items:center; position:relative; width:42px; height:48px; border-radius:12px; background:var(--peach); color:#74452e; padding-top:6px; box-shadow:var(--piece-shadow); font:500 23px Fredoka,sans-serif; }
+.calendar-mark::before { content:''; position:absolute; top:11px; left:8px; right:8px; height:2px; border-radius:2px; background:#b38a7166; }
+.date-weekday { display:block; font-size:12px; font-weight:800; color:var(--muted); }
+.date-day { display:block; font-size:18px; font-weight:800; }
+.workspace { display:grid; grid-template-columns:224px minmax(0,1fr); gap:32px; align-items:start; }
+.club-sidebar { position:sticky; top:24px; min-width:0; background:var(--white); border:1px solid #d6ddcf; border-radius:var(--radius); box-shadow:var(--surface-shadow); overflow:hidden; }
+.groups { padding:24px 16px 20px; }
+.groups-label { display:flex; align-items:center; gap:8px; font:800 13px Nunito,sans-serif; color:var(--ink-soft); margin:0 8px 16px; }
+.groups-label .ui-icon { width:17px; height:17px; }
+.group-buttons { display:flex; flex-direction:column; gap:12px; padding-bottom:4px; }
+.group-button { display:flex; align-items:center; gap:10px; padding:12px; min-height:52px; border:2px solid transparent; border-radius:14px; background:#eeeee4; color:var(--ink-soft); text-align:left; font-weight:800; font-size:14px; box-shadow:inset 0 1px 0 white; transition:background var(--duration-state),transform var(--duration-press); }
+.group-button:hover { background:var(--lavender); }
+.group-button:active { transform:translateY(2px); }
+.group-button[aria-pressed=true] { background:linear-gradient(135deg,#e2e861,var(--lilac)); color:#263c32; border-color:#c0c838; box-shadow:var(--piece-shadow); }
+.group-symbol { display:grid; place-items:center; width:28px; height:28px; background:#ffffff70; border-radius:9px; }
+.group-symbol .ui-icon { width:18px; height:18px; }
+.group-count { display:grid; place-items:center; width:24px; height:24px; border-radius:50%; background:#ffffff9c; margin-left:auto; font-size:12px; color:#425248; }
+.activity { padding:20px 24px 24px; border-top:1px solid #dce0d5; }
+.activity-copy { display:flex; flex-direction:column; gap:14px; }
+.friend-stack { display:flex; padding-left:4px; }
+.friend-stack .avatar { margin:0 0 0 -4px; width:32px; height:34px; border:2px solid white; transform:rotate(var(--tilt)); font-size:11px; }
+.activity h2 { font-size:19px; line-height:1.2; margin-bottom:8px; }
+.activity p { font-size:13px; line-height:1.6; color:var(--muted); }
+.club-progress { margin-top:20px; padding:16px; background:#e9e8d9; border-radius:16px; }
+.progress-head { display:flex; gap:8px; justify-content:space-between; font-size:12px; font-weight:800; margin-bottom:12px; }
+.progress-head strong { color:var(--purple); }
+.completion-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; }
+.completion-grid span { height:16px; border-radius:4px; background:#d4d7c6; box-shadow:inset 0 1px 1px #3023460b; }
+.completion-grid span.filled { background:#4e8062; box-shadow:inset 0 1px 0 #6a9975,0 2px 0 #305a42; }
+.progress-caption { font-size:12px!important; margin-top:10px; color:#685e50!important; }
+.stats-link { display:flex; align-items:center; justify-content:center; gap:8px; padding:11px 12px; min-height:44px; border:1px solid #becbbc; border-radius:12px; text-decoration:none; font-size:13px; font-weight:800; background:white; color:var(--purple); margin-top:20px; }
+.stats-link:hover { background:var(--lavender); }
+.main-desk { min-width:0; }
+.section-head { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:16px; }
+.section-head h2 { font-size:26px; }
+.section-meta { font-size:13px; color:var(--muted); }
 .step { display:none; }
-.games { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; }
-.game { --game:#d6b3fc; --game-rgb:214 179 252; display:grid; grid-template-columns:minmax(0,1fr) 22px; position:relative; padding:0 0 17px; overflow:hidden; color:#292523; text-align:left; border:1.5px solid #292523; border-radius:15px; background:color-mix(in srgb,var(--game) 38%,#fffdf8); box-shadow:0 4px 0 #292523; transition:transform .18s,box-shadow .18s; }
-.game:hover { transform:translateY(-4px) rotate(-1deg); box-shadow:0 8px 0 #292523; }
-.game:nth-child(even):hover { transform:translateY(-4px) rotate(1deg); }
-.game:active { transform:translateY(3px); box-shadow:0 1px 0 #292523; }
-.game[aria-pressed=true] { box-shadow:0 4px 0 #292523,0 0 0 3px var(--canvas),0 0 0 5px #292523; }
-.game-icon { display:grid; grid-column:1/-1; place-items:center; position:relative; height:119px; background:linear-gradient(145deg,var(--game),color-mix(in srgb,var(--game) 66%,#fffdf8)); border-bottom:1px solid #29252318; margin-bottom:13px; }
-.game-title { display:block; padding-left:15px; font-size:17px; font-weight:700; letter-spacing:-.045em; }
-.game-meta { display:block; padding-left:15px; color:#5c5149; font-size:10px; margin-top:5px; }
-.arrow { font-size:18px; padding-right:8px; }
-.game[aria-pressed=true] .arrow { font-size:0; }
-.game[aria-pressed=true] .arrow::after { content:'✓'; font-size:18px; font-weight:700; }
-[data-game=wordle] { --game:#a8cc98; --game-rgb:168 204 152; }
-[data-game=connections] { --game:#cbb2e4; --game-rgb:203 178 228; }
-[data-game=quillion] { --game:#f8c96c; --game-rgb:248 201 108; }
-[data-game=worldle] { --game:#a9d9e7; --game-rgb:169 217 231; }
-.word-art { display:flex; gap:4px; transform:rotate(-9deg); }
-.word-art i { width:29px; height:34px; display:grid; place-items:center; border:1.5px solid #292523; box-shadow:0 4px 0 #292523; background:#fffdf8; font:700 22px 'DM Sans',sans-serif; font-style:normal; }
-.word-art i:nth-child(2) { background:#f6d365; transform:translateY(-8px); }
-.word-art i:nth-child(3) { background:#578656; color:#fffdf8; transform:translateY(2px); }
-.word-art i:nth-child(4) { background:#578656; color:#fffdf8; transform:translateY(-5px); }
-.connection-art { display:grid; grid-template-columns:repeat(2,54px); gap:5px; transform:rotate(8deg); }
-.connection-art i { display:grid; place-items:center; height:32px; border:1.5px solid #292523; border-radius:6px; box-shadow:0 3px 0 #292523; background:#fae275; font:700 11px 'DM Sans',sans-serif; font-style:normal; }
-.connection-art i:nth-child(2) { background:#aad395; transform:rotate(-8deg); }
-.connection-art i:nth-child(3) { background:#afa5db; transform:rotate(6deg); }
-.connection-art i:nth-child(4) { background:#f3e9d8; }
-.quillion-art { display:grid; place-items:center; width:85px; height:85px; border:2px solid #292523; border-radius:50%; box-shadow:4px 4px 0 #292523; background:#fff1a6; transform:rotate(-12deg); font:700 61px Fraunces,Georgia,serif; }
-.globe-art { width:93px; height:93px; transform:rotate(10deg); filter:drop-shadow(3px 4px 0 #292523); }
-.game-tools { margin-top:20px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
-.pick-for-me { border:1.5px solid #292523; border-radius:25px; background:#fffdf8; padding:10px 15px; min-height:42px; font-size:12px; font-weight:700; box-shadow:2px 2px 0 #d5c9b9; }
-.pick-for-me:hover { background:#f8c96c; }
-.dice { display:inline-block; font-size:20px; margin-right:5px; vertical-align:-2px; }
-.game-hint { font-size:11px; line-height:1.6; color:var(--muted); max-width:175px; }
-.play-note { margin-top:22px; padding:15px 17px; border:1px dashed #bfb09c; border-radius:12px; background:#f2eadd; font-size:12px; line-height:1.7; color:#63564a; }
-.play-note strong { display:block; color:#292523; margin-bottom:3px; }
-.board-section { min-width:0; scroll-margin-top:110px; }
-.board { position:relative; border:1.5px solid #292523; border-radius:17px; background:#fffdf8; box-shadow:5px 5px 0 #e4d6c3; overflow:hidden; }
-.board-head { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:22px 22px 17px; background:color-mix(in srgb,var(--board-color) 38%,#fffdf8); border-bottom:1px solid var(--line); }
-.board-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; margin-bottom:7px; }
-.board h3 { font:600 31px Fraunces,Georgia,serif; letter-spacing:-.045em; }
-.board-symbol { display:grid; place-items:center; width:47px; height:47px; border:1.5px solid #292523; border-radius:12px; background:var(--board-color); color:#292523; box-shadow:3px 3px 0 #292523; transform:rotate(8deg); font-size:29px; font-weight:700; }
-.board-context { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:15px 22px; font-size:11px; color:#61564c; border-bottom:1px solid var(--line); }
-.mini-tiles { display:flex; gap:4px; }
-.mini-tiles span { width:12px; height:12px; border:1px solid #29252355; border-radius:3px; }
-.mini-tiles .filled { background:var(--board-color); border-color:#292523; }
-.board-views { display:flex; gap:3px; padding:3px; border:1px solid #29252330; border-radius:20px; background:#f3ede3; }
-.view-button { border:0; border-radius:16px; background:transparent; font-size:10px; padding:6px 9px; color:#61564c; min-height:28px; }
-.view-button[aria-pressed=true] { background:#292523; color:#fffdf8; }
-table { border-collapse:collapse; width:100%; font-size:13px; }
+.layout { display:grid; gap:32px; }
+.games { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
+.game { --game:#9045d6; --game-rgb:144 69 214; display:flex; flex-direction:column; position:relative; min-width:0; padding:12px 12px 16px; border:2px solid transparent; border-radius:20px; background:var(--white); color:var(--ink); box-shadow:var(--surface-shadow); text-align:left; transition:transform var(--duration-press) var(--ease),border-color var(--duration-state),background var(--duration-state); }
+.game:hover { transform:translateY(-3px); background:#fff; border-color:color-mix(in srgb,var(--game) 90%,#6e6478); }
+.game:active { transform:translateY(2px); }
+.game[aria-pressed=true] { border-color:#126655; background:#e7ece0; }
+.game[aria-pressed=true]::after { content:''; position:absolute; top:19px; right:18px; width:21px; height:21px; border:2px solid white; border-radius:50%; background:#126655; box-shadow:0 2px 4px #4d237a26; }
+.game[aria-pressed=true] .arrow { position:absolute; top:18px; right:19px; z-index:1; color:white; font-size:0; }
+.game[aria-pressed=true] .arrow::after { content:'✓'; font-size:14px; }
+.game .arrow { display:none; }
+.game[aria-pressed=true] .arrow { display:block; }
+.game-icon { display:grid; place-items:center; width:100%; height:99px; margin-bottom:14px; border-radius:14px; background:linear-gradient(135deg,color-mix(in srgb,var(--game) 68%,white),var(--game)); box-shadow:var(--piece-shadow); }
+.game-title { display:block; font-size:16px; font-weight:800; }
+.game-meta { display:block; font-size:12px; color:#55635c; margin-top:4px; }
+[data-game=wordle] { --game:#008569; --game-rgb:0 133 105; }
+[data-game=connections] { --game:#9045d6; --game-rgb:144 69 214; }
+[data-game=quillion] { --game:#ffd12f; --game-rgb:255 209 47; }
+[data-game=worldle] { --game:#2a70ec; --game-rgb:42 112 236; }
+.word-art { display:flex; gap:3px; transform:rotate(-7deg); }
+.word-art i { display:grid; place-items:center; width:23px; height:30px; font:500 20px Fredoka,sans-serif; font-style:normal; border-radius:5px; border:1px solid #ffffff90; background:white; color:#455c39; box-shadow:0 3px 0 #354c3c35,inset 0 1px 0 white; }
+.word-art i:nth-child(2) { background:#f9e4a1; transform:translateY(-6px); }
+.word-art i:nth-child(3) { background:#718c5a; color:white; transform:translateY(2px); }
+.word-art i:nth-child(4) { background:#718c5a; color:white; transform:translateY(-4px); }
+.connection-art { display:grid; grid-template-columns:repeat(2,40px); gap:4px; transform:rotate(7deg); }
+.connection-art i { height:25px; display:grid; place-items:center; font-style:normal; font-size:9px; font-weight:800; border-radius:6px; background:#f9df85; box-shadow:0 3px 0 #765b8738,inset 0 1px 0 #ffffffc9; }
+.connection-art i:nth-child(2) { background:#b5d79b; transform:rotate(-5deg); }
+.connection-art i:nth-child(3) { background:#b3a4d9; transform:rotate(4deg); }
+.connection-art i:nth-child(4) { background:#f8eee2; }
+.quillion-art { width:61px; height:61px; display:grid; place-items:center; border:3px solid #fff4c2; border-radius:50%; font:600 42px Fredoka,sans-serif; color:#89621d; background:linear-gradient(135deg,#fff3b8,#e9bb53); box-shadow:0 4px 0 #b0904f55,inset 0 2px 0 #fff6d8; transform:rotate(-10deg); }
+.globe-art { width:67px; height:67px; transform:rotate(8deg); filter:drop-shadow(1px 3px 0 #517d8040); }
+.globe-art [stroke] { stroke:#52635c; }
+.game-tools { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-top:16px; }
+.pick-for-me { display:flex; align-items:center; gap:8px; padding:10px 14px; min-height:44px; background:transparent; border:1px solid #becbbc; border-radius:12px; color:#245c4b; font-size:13px; font-weight:800; }
+.pick-for-me:hover { background:var(--lavender); }
+.dice { display:flex; }
+.game-hint { color:var(--muted); font-size:13px; }
+.board-section { min-width:0; scroll-margin-top:120px; }
+.board { --surface-board:#fff; border:1px solid #cbd5c8; border-radius:var(--radius); background:var(--surface-board); box-shadow:var(--surface-shadow); overflow:hidden; position:relative; }
+.board-head { padding:24px; display:flex; justify-content:space-between; gap:16px; align-items:center; background:linear-gradient(120deg,color-mix(in srgb,var(--board-color) 26%,white),white); }
+.board-label { font-size:12px; color:var(--muted); font-weight:800; margin-bottom:6px; }
+.board h3 { font-family:Fredoka,sans-serif; font-size:30px; font-weight:500; }
+.board-symbol { width:48px; height:50px; border:2px solid #ffffffbb; border-radius:14px; display:grid; place-items:center; background:var(--board-color); color:#45364d; box-shadow:var(--piece-shadow); font:500 30px Fredoka,sans-serif; transform:rotate(8deg); }
+.board-context { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; padding:12px 24px; border-block:1px solid #dce1d6; color:var(--muted); font-size:13px; }
+.board-views { display:flex; gap:4px; padding:4px; border-radius:12px; background:#eceee4; }
+.view-button { display:flex; gap:6px; align-items:center; border:0; background:transparent; border-radius:9px; padding:8px 12px; min-height:36px; font-size:12px; font-weight:800; color:var(--muted); }
+.view-button .ui-icon { width:16px; height:16px; }
+.view-button[aria-pressed=true] { background:var(--white); color:var(--purple); box-shadow:0 2px 5px #412b6712; }
+.mini-tiles { display:none; }
+.mosaic { display:grid; grid-template-columns:repeat(auto-fit,minmax(128px,1fr)); gap:16px; padding:24px; background:radial-gradient(circle,#bfa8d820 .8px,transparent 1px) 0 0/12px 12px,#fcfaff; }
+.mosaic-piece { min-width:0; position:relative; background:linear-gradient(145deg,color-mix(in srgb,var(--person-color) 35%,white),color-mix(in srgb,var(--person-color) 65%,white)); border:2px solid #ffffffbb; border-radius:18px; box-shadow:var(--piece-shadow); padding:16px 8px 8px; transform:rotate(var(--lean)); transition:transform var(--duration-press); }
+.mosaic-piece:hover { transform:rotate(0) translateY(-3px); }
+.mosaic-card { display:flex; flex-direction:column; align-items:center; gap:9px; width:100%; padding:0 0 8px; border:0; border-radius:12px; background:none; text-align:center; }
+.mosaic-card .avatar { margin:0 0 3px; width:40px; height:42px; font-size:16px; border:2px solid #fff; }
+.mosaic-card strong { font-size:15px; font-weight:800; }
+.mosaic-score { font:500 23px Fredoka,sans-serif; font-variant-numeric:tabular-nums; line-height:1.1; }
+.mosaic-card small { display:flex; align-items:center; gap:4px; font-size:12px; color:#665267; }
+.mosaic-card small .ui-icon { width:15px; height:15px; color:#a65c2d; }
+.mosaic-piece .cheer { margin:0 auto; justify-content:center; background:#ffffff70; min-height:36px; width:max-content; padding:6px 10px; border-radius:10px; }
+.piece-waiting { font-size:12px; color:#675567; text-align:center; padding:8px 0; }
+.avatar { width:32px; height:34px; margin-right:8px; display:inline-grid; place-items:center; border:1px solid #ffffffa6; border-radius:11px; background:var(--avatar); color:#423047; font-weight:800; font-size:13px; box-shadow:var(--piece-shadow); }
+table { width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; }
 th,td { text-align:left; }
-th { padding:13px 9px 10px; font-size:10px; font-weight:500; color:#71675c; }
-td { padding:13px 9px; border-top:1px solid var(--line); height:84px; }
-th:first-child,td:first-child { padding-left:21px; width:38px; }
-th:last-child,td:last-child { padding-right:21px; text-align:right; }
-.rank { color:#8c7c69; font-size:12px; }
-.player { font-weight:600; white-space:nowrap; }
-.avatar { display:inline-grid; place-items:center; width:29px; height:31px; margin-right:8px; border:1.2px solid #292523; border-radius:9px; color:#292523; background:var(--avatar); font-size:11px; font-weight:700; box-shadow:1px 2px 0 #292523; }
-.score { color:#292523; }
-.score-tile { display:inline-flex; justify-content:center; align-items:center; min-width:62px; min-height:34px; padding:6px 9px; border:1.3px solid #292523; border-radius:7px; background:color-mix(in srgb,var(--board-color) 55%,#fffdf8); box-shadow:0 3px 0 #292523; font-size:12px; font-weight:700; white-space:nowrap; transform:rotate(-2deg); transition:transform .15s; }
-.score-tile:hover { transform:rotate(3deg) translateY(-2px); }
-.cheer { display:block; border:0; border-radius:8px; background:transparent; padding:4px 3px; margin-top:5px; min-width:48px; min-height:28px; text-align:left; color:#786055; font-size:10px; }
-.cheer[aria-pressed=true] { color:#9a3558; background:#f8dde6; }
-.cheer-heart { font-size:14px; vertical-align:-1px; margin-right:4px; }
-.cheer:hover { background:#f8dde6; }
-.pending { display:inline-flex; gap:5px; align-items:center; color:#897c6b; font-size:10px; }
-.pending::before { content:''; width:10px; height:10px; border:1px dashed #897c6b; border-radius:3px; }
-.streak { font-size:11px; white-space:nowrap; color:#75583c; }
-.board-foot { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:15px 22px; border-top:1px solid var(--line); font-size:11px; color:#706456; background:#fbf7ef; }
-.board-foot a { padding:10px 13px; border:1.3px solid #292523; border-radius:22px; text-decoration:none; font-weight:700; color:#292523; background:var(--board-color); box-shadow:1px 2px 0 #292523; }
-.board-note { display:flex; justify-content:space-between; gap:12px; font-size:10px; color:#75685a; margin-top:18px; }
-.cheer-note { font-size:10px; color:#8b7a68; line-height:1.6; margin-top:8px; }
-.mosaic { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; padding:19px; }
-.mosaic-card { display:flex; align-items:center; flex-direction:column; gap:10px; text-align:center; padding:18px 8px; min-height:155px; border:1.4px solid #292523; border-radius:12px; background:color-mix(in srgb,var(--person-color) 50%,#fffdf8); box-shadow:0 3px 0 #292523; transform:rotate(var(--lean)); transition:transform .15s; }
-.mosaic-card:hover { transform:rotate(0) translateY(-4px); }
-.mosaic-card .avatar { margin:0; width:32px; height:34px; }
-.mosaic-card strong { font-size:12px; }
-.mosaic-score { font-weight:700; font-size:12px; }
-.mosaic-card small { font-size:10px; color:#685a50; }
-dialog { width:min(460px,calc(100% - 32px)); padding:25px; border:1.5px solid #292523; border-radius:19px; color:#292523; background:#fffaf0; box-shadow:7px 7px 0 #29252366; }
-dialog::backdrop { background:#2e24317a; backdrop-filter:blur(5px); }
-.dialog-head { display:flex; justify-content:space-between; align-items:start; gap:12px; }
-.dialog-head h2 { font:600 29px Fraunces,Georgia,serif; }
-.dialog-close { background:#f6e9d8; border:1px solid #292523; border-radius:50%; width:34px; height:34px; font-size:22px; flex-shrink:0; }
-.dialog-subtitle { font-size:12px; margin:10px 0 21px; color:#6f6153; line-height:1.6; }
-.week-strip { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:5px; margin-bottom:20px; }
-.week-day { text-align:center; font-size:9px; color:#726453; }
-.week-day strong { display:grid; place-items:center; height:46px; border:1px solid #29252333; border-radius:7px; margin-bottom:7px; background:#eee4d4; color:#292523; font-size:12px; }
-.week-day.solved strong { background:#c9dfb0; border-color:#78955a; }
-.week-day.lost strong { background:#f2c0aa; border-color:#b1765b; }
-.week-totals { display:flex; justify-content:space-between; gap:10px; padding:15px 0; border-block:1px solid var(--line); font-size:11px; }
-.week-totals strong { display:block; font:600 22px Fraunces,Georgia,serif; margin-bottom:3px; }
-.dialog-note { font-size:10px; color:#82715e; margin-top:16px; line-height:1.6; }
-.flight-layer { position:fixed; inset:0; z-index:10; pointer-events:none; overflow:hidden; }
-.flying-tile { position:absolute; display:grid; place-items:center; width:68px; height:35px; border:1.4px solid #292523; border-radius:7px; background:var(--flight-color); color:#292523; box-shadow:0 4px 0 #292523; font-size:10px; font-weight:700; }
-.sparkle { position:fixed; z-index:12; pointer-events:none; font-size:17px; line-height:1; }
-#cheer-announcement { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-.stats { border-top:1px solid var(--line); margin-top:34px; padding-top:22px; }
-.stats>summary { display:flex; justify-content:space-between; align-items:center; gap:15px; list-style:none; cursor:pointer; padding-bottom:17px; }
-.stats>summary::-webkit-details-marker { display:none; }
-.stats-toggle { display:flex; align-items:center; gap:12px; font-size:11px; color:#716356; }
-.stats-toggle::after { content:'+'; font-size:22px; color:#8052a4; }
-.stats[open] .stats-toggle::after { content:'−'; }
-.preview { padding:5px 9px; border:1px solid #29252330; border-radius:20px; color:#7b6a57; font-size:10px; }
-.stats-note { font-size:12px; line-height:1.7; color:#7a6a59; margin-top:12px; }
-.stats-controls { display:flex; flex-wrap:wrap; justify-content:space-between; gap:15px; margin:20px 0; }
+th { font-size:12px; font-weight:700; color:var(--muted); padding:14px 12px; }
+td { border-top:1px solid #dce1d6; padding:14px 12px; }
+th:first-child,td:first-child { width:46px; padding-left:24px; }
+th:last-child,td:last-child { padding-right:24px; text-align:right; }
+.rank { font-size:13px; color:#54695b; }
+.player { font-weight:800; white-space:nowrap; }
+.score-tile { display:inline-flex; justify-content:center; align-items:center; padding:8px 12px; min-height:44px; min-width:64px; border:2px solid #ffffffaa; border-radius:12px; background:color-mix(in srgb,var(--board-color) 60%,white); color:#244738; box-shadow:var(--piece-shadow); font-weight:800; font-size:14px; font-variant-numeric:tabular-nums; }
+.score-tile:hover { background:var(--board-color); }
+.cheer { display:flex; align-items:center; gap:5px; margin-top:8px; border:1px solid transparent; background:transparent; border-radius:10px; min-height:36px; min-width:60px; padding:6px 8px; color:#715248; font-size:12px; font-weight:700; }
+.cheer .ui-icon { width:17px; height:17px; }
+.cheer:hover { background:#f3e2d5; border-color:#ddbea4; }
+.cheer[aria-pressed=true] { color:#6f3b29; background:#ead7c0; }
+.pending { color:var(--muted); font-size:13px; }
+.streak { color:#755136; font-size:13px; white-space:nowrap; }
+.streak .ui-icon { color:#ae5a21; width:16px; height:16px; margin-right:3px; }
+.board-foot { border-top:1px solid #dce1d6; padding:16px 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; font-size:13px; color:var(--muted); }
+.board-foot a { display:flex; align-items:center; gap:6px; text-decoration:none; font-size:13px; font-weight:800; padding:10px 16px; min-height:44px; background:var(--purple); color:white; border-radius:12px; box-shadow:0 3px 0 #0b473b; }
+.board-foot a:hover { background:#0e5144; }
+.board-note { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:16px; font-size:12px; color:var(--muted); }
+.board-note>span:first-child { display:flex; align-items:center; gap:7px; }
+.board-note .ui-icon { width:16px; height:16px; color:var(--purple); }
+.cheer-note { font-size:12px; color:var(--muted); margin-top:8px; }
+.flight-layer { position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:30; }
+.flying-tile { position:absolute; width:74px; height:38px; display:grid; place-items:center; background:var(--flight-color); border:2px solid white; border-radius:10px; box-shadow:var(--piece-shadow); color:#43354c; font-size:12px; font-weight:800; }
+.sparkle { position:fixed; z-index:40; pointer-events:none; line-height:1; }
+.sparkle .ui-icon { width:16px; height:16px; }
+#cheer-announcement { position:absolute; height:1px; width:1px; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+dialog { width:min(496px,calc(100% - 32px)); border:1px solid #cbd5c8; border-radius:24px; padding:28px; background:#fffdf7; color:var(--ink); box-shadow:0 24px 90px #2d154430; }
+dialog::backdrop { background:#183d3c88; backdrop-filter:blur(5px); }
+.dialog-head { display:flex; justify-content:space-between; gap:16px; align-items:start; }
+.dialog-head h2 { font-size:29px; }
+.dialog-close { display:grid; place-items:center; border:0; background:var(--lavender); color:var(--purple); border-radius:12px; width:44px; height:44px; flex-shrink:0; }
+.dialog-subtitle { color:var(--muted); font-size:14px; line-height:1.7; margin:12px 0 24px; }
+.week-strip { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; margin-bottom:24px; }
+.week-day { text-align:center; font-size:12px; color:var(--muted); }
+.week-day strong { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; height:58px; border-radius:12px; margin-bottom:8px; background:#e8e8dc; color:#4c6153; font-size:16px; box-shadow:inset 0 2px 0 #ffffff8c; }
+.week-day .day-mark { font-size:10px; }
+.week-day.solved strong { background:#cddbc2; color:#30513c; }
+.week-day.lost strong { background:#efd3bd; color:#843e2a; }
+.week-totals { display:flex; justify-content:space-between; gap:12px; border-block:1px solid var(--line); padding:16px 0; font-size:12px; color:var(--muted); }
+.week-totals strong { display:block; font:500 29px Fredoka,sans-serif; color:var(--ink); }
+.dialog-note { font-size:12px; color:var(--muted); line-height:1.7; margin-top:16px; }
+.preview { display:inline-block; color:#526456; border:1px solid #c0cbbb; background:#efeee3; padding:4px 9px; border-radius:20px; font-size:12px; }
+.stats-note { color:var(--muted); font-size:14px; line-height:1.7; margin-top:12px; max-width:75ch; }
 .filter-row { display:flex; flex-wrap:wrap; gap:8px; }
-.filter { background:#fffdf8; border:1px solid #292523; border-radius:22px; font-size:12px; padding:9px 12px; }
-.filter[aria-pressed=true] { background:#d8c4ed; }
-.summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:19px 0; }
-.metric { padding:17px; border:1px solid #292523; border-radius:13px; background:#dfebca; }
-.metric:nth-child(2) { background:#d9d4f0; }
-.metric:nth-child(3) { background:#f8d6ae; }
-.metric-icon { display:block; margin-bottom:8px; }
-.metric strong { display:block; font:600 27px Fraunces,Georgia,serif; overflow-wrap:anywhere; }
-.metric-label,.metric-caption { display:block; font-size:12px; line-height:1.6; margin-top:5px; }
-.metric-caption { font-size:10px; color:#6b5a49; }
-.stats-table { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; }
-.player-card { --player-tone:#dab8ff; min-width:0; padding:20px; border:1px solid #292523; border-radius:15px; background:color-mix(in srgb,var(--player-tone) 18%,#fffdf8); }
-.player-card h3 { display:flex; align-items:center; gap:5px; font-size:20px; }
-.player-card .avatar { background:var(--player-tone); }
-.player-numbers { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:17px 0; }
-.player-number { border-bottom:1px solid var(--line); padding:10px 0; }
-.player-number strong { display:block; font:600 22px Fraunces,Georgia,serif; }
-.player-number span { display:block; font-size:11px; color:#736352; margin-top:4px; }
-.activity-caption,.player-help { font-size:12px; line-height:1.6; color:#736352; }
-.player-help { margin-top:12px; }
-.activity-scroll { overflow-x:auto; padding:5px; margin:5px -5px; scrollbar-width:thin; }
-.heatmap { display:flex; gap:4px; width:max-content; padding:4px; }
-.day { width:16px; height:27px; border:1px solid #29252330; border-radius:4px; padding:0; background:#e9e1d6; }
-.day[data-level="1"] { background:#8cc3ba; }
-.day[data-level="2"] { background:#b6a2d8; }
-.day[data-level="3"] { background:#eeaf73; }
-.day[aria-pressed=true] { outline:2px solid #292523; outline-offset:1px; }
-.legend { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:15px 0; font-size:11px; color:#776552; line-height:1.7; }
-.legend .day { display:inline-block; width:12px; height:12px; }
-.detail { padding:16px; border:1px solid #292523; border-radius:12px; background:#eee4f2; font-size:13px; line-height:1.7; }
-.detail h3 { margin-bottom:5px; }
-footer { display:flex; justify-content:space-between; gap:14px; margin-top:30px; padding-top:18px; border-top:1px solid var(--line); color:#897660; font-size:10px; }
-@media(max-width:1000px) { .bar,main { padding-inline:28px; } .layout { gap:24px; } .day-sticker { display:none; } .game-title { font-size:15px; } .board-head,.board-foot,.board-context { padding-inline:17px; } th:first-child,td:first-child { padding-left:16px; width:30px; } th:last-child,td:last-child { padding-right:16px; } }
-@media(max-width:700px) {
- .bar,main { padding-inline:19px; } .bar { min-height:65px; } .brand { font-size:26px; } .header-note { font-size:0; gap:0; } main { padding-top:24px; }
- .page-head { gap:15px; margin-bottom:23px; align-items:center; } h1 { font-size:36px; } .title-kicker { font-size:8px; letter-spacing:.06em; margin-bottom:9px; } .date { gap:0; padding:11px; border-radius:10px; } .calendar-mark { display:none; } .date-weekday { font-size:8px; } .date-day { font-size:16px; white-space:nowrap; }
- .groups { display:block; position:sticky; top:0; z-index:5; background:#faf6ecf5; backdrop-filter:blur(15px); padding:15px 0 18px; } .groups-label { font-size:10px; margin-bottom:12px; } .group-button { padding:9px 12px; font-size:12px; gap:7px; }
- .activity { margin:19px 0 24px; align-items:flex-start; } .activity-copy { flex-wrap:wrap; gap:10px; } .activity h2 { font-size:14px; } .activity p { font-size:10px; } .friend-stack .avatar { width:27px; height:28px; font-size:9px; } .stats-link { font-size:10px; padding:9px 10px; }
- .layout { grid-template-columns:minmax(0,1fr); gap:27px; } h2 { font-size:21px; } .games { gap:13px; } .game-icon { height:98px; } .game-title { font-size:16px; padding-left:13px; } .game-meta { padding-left:13px; font-size:10px; } .game { padding-bottom:15px; } .word-art { transform:rotate(-9deg) scale(.85); } .connection-art { transform:rotate(8deg) scale(.85); } .quillion-art { transform:rotate(-12deg) scale(.8); } .globe-art { width:78px; height:78px; }
- .game-tools { margin-top:18px; } .pick-for-me { font-size:11px; padding:9px 12px; } .game-hint { font-size:10px; max-width:160px; } .play-note { display:none; }
- .board h3 { font-size:29px; } .board-label { font-size:9px; } .board-head { padding:20px 17px 17px; } .board-context { padding:12px 15px; font-size:10px; } .mini-tiles { display:none; } .view-button { font-size:10px; padding:6px 8px; }
- table { font-size:12px; } th { font-size:9px; padding:12px 6px 9px; } td { padding:12px 6px; } .avatar { margin-right:5px; width:25px; height:28px; font-size:10px; } .score-tile { min-width:51px; font-size:11px; padding-inline:7px; } .streak { font-size:10px; } .cheer { font-size:9px; min-height:30px; } .board-foot { font-size:10px; } .board-note { font-size:9px; } .mosaic { gap:10px; padding:15px; grid-template-columns:repeat(2,minmax(0,1fr)); } .mosaic-card { min-height:149px; }
- .stats { margin-top:28px; } .stats>summary h2 { font-size:18px; } .stats-toggle { font-size:10px; } .stats-table { grid-template-columns:minmax(0,1fr); } .metric { padding:12px; } .metric strong { font-size:23px; } .metric-label { font-size:10px; } .metric-caption { display:none; } footer { font-size:9px; }
+.filter { min-height:44px; border:1px solid #c0cbbb; border-radius:12px; background:white; color:var(--ink-soft); font-size:13px; font-weight:800; padding:10px 12px; }
+.filter[aria-pressed=true] { background:var(--lavender); border-color:#77937c; color:var(--purple); }
+.legend { display:flex; flex-wrap:wrap; align-items:center; gap:7px; font-size:12px; color:var(--muted); margin:16px 0; }
+.detail { padding:20px; border:1px solid #bdcdb9; border-radius:16px; background:var(--lavender); font-size:14px; line-height:1.7; }
+.detail h3 { margin-bottom:8px; }
+footer { display:flex; justify-content:space-between; align-items:center; gap:16px; color:var(--muted); font-size:12px; margin-top:32px; border-top:1px solid var(--line); padding-top:20px; }
+footer .ui-icon { width:15px; height:15px; color:var(--purple); }
+
+/* Ink & citrus: warm paper, mineral ink, saturated game pieces. */
+header { background:#f7f4ec; }
+.top-link[aria-current] { color:var(--primary); background:#e3e8dc; }
+.logo { background:var(--signal); color:#234638; }
+.title-kicker .ui-icon { color:#a0611d; }
+.cover-stack i { color:#fffdf3; border-color:#ffffff35; }
+.cover-stack i:first-child { color:#3e3f1d; }
+.calendar-mark { color:#fff7e6; }
+.calendar-mark::before { background:#ffffff66; }
+.group-symbol,.group-count { background:#ffffff40; }
+.group-button[aria-pressed=true] { background:linear-gradient(135deg,#e1e66e,var(--signal)); color:#263c32; }
+.group-button[aria-pressed=true] .group-count { color:#344a30; }
+.game-icon { background:linear-gradient(145deg,color-mix(in srgb,var(--game) 88%,#fff3b6),var(--game)); }
+.game[aria-pressed=true]::after { background:var(--primary); }
+.game[aria-pressed=true] { background:#e8ecdb; border-color:#386b52; }
+.board-head { background:linear-gradient(120deg,var(--board-color),color-mix(in srgb,var(--board-color) 88%,#163a3c)); color:#fffdf3; }
+.board-label { color:#ffffffde; }
+.board-symbol { background:#ffffff1a; color:#fffbe8; border-color:#ffffff5c; }
+.mosaic { background:radial-gradient(circle,#6b7d6924 .8px,transparent 1px) 0 0/12px 12px,#eeeee2; }
+.mosaic-piece { background:linear-gradient(140deg,var(--person-color),color-mix(in srgb,var(--person-color) 88%,#142e2d)); border-color:#ffffff30; color:#fffdf4; }
+.mosaic-card { color:inherit; }
+.mosaic-card small,.piece-waiting { color:#ffffffdf; }
+.mosaic-card small .ui-icon { color:#ffd78d; }
+.avatar { color:#fffdf4; border-color:#ffffff60; }
+.friend-stack .avatar { border-color:var(--paper); }
+.mosaic-piece .cheer { background:#ffffff15; color:#fffdf4; border-color:#ffffff15; }
+.mosaic-piece .cheer:hover { background:#00000018; border-color:#ffffff55; }
+.mosaic-piece .cheer[aria-pressed=true] { background:var(--signal); color:#2b3f2d; border-color:var(--signal); }
+.score-tile { background:color-mix(in srgb,var(--board-color) 19%,var(--white)); }
+.score-tile:hover { background:color-mix(in srgb,var(--board-color) 28%,var(--white)); }
+.flying-tile { color:#fffdf4; border-color:#ffffff75; }
+.panel-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+.panel-kicker { font-size:12px; color:var(--muted); margin-bottom:5px; }
+.panel-tag { padding:6px 10px; background:#e9eddf; color:#425b48; border-radius:20px; font-size:12px; font-weight:800; }
+.chart-explanation { font-size:13px; line-height:1.7; color:var(--muted); margin-bottom:16px; max-width:75ch; }
+.comparison-chart { display:grid; gap:8px; }
+.compare-row { display:grid; grid-template-columns:136px minmax(0,1fr) 130px; gap:16px; align-items:center; border:1px solid transparent; border-radius:12px; padding:10px 12px; min-height:65px; text-align:left; background:transparent; }
+.compare-row:hover { background:#efeee3; }
+.compare-row[aria-pressed=true] { border-color:#8d9c70; background:#edf0db; }
+.compare-person { display:flex; align-items:center; min-width:0; gap:2px; font-size:14px; font-weight:800; }
+.compare-track { display:block; height:18px; border-radius:5px; background:#e6e9de; position:relative; }
+.compare-fill { display:block; height:100%; border-radius:5px; background:var(--player-color); }
+.compare-value { text-align:right; font-size:14px; font-weight:800; font-variant-numeric:tabular-nums; }
+.compare-value small { display:block; font-size:12px; font-weight:600; margin-top:2px; color:var(--muted); }
+.matrix-scroll { overflow-x:auto; max-width:100%; border:1px solid #d4dbcd; border-radius:12px; scrollbar-width:thin; }
+.matrix-table { width:100%; border-collapse:separate; border-spacing:0; background:var(--surface); }
+.matrix-table .heatmap { display:table-row; width:auto; padding:0; }
+.matrix-table th,.matrix-table td { padding:5px 3px; text-align:center; border-bottom:1px solid #e0e5d9; }
+.matrix-table th:last-child,.matrix-table td:last-child { padding-right:7px; }
+.matrix-table td { border-top:0; }
+.matrix-table .matrix-name { position:sticky; left:0; z-index:1; text-align:left; background:var(--surface); min-width:128px; padding-left:12px; padding-right:12px; border-right:1px solid #d4dbcd; }
+.matrix-person { display:flex; align-items:center; font-size:13px; font-weight:800; }
+.matrix-person .avatar { width:25px; height:28px; font-size:11px; margin-right:7px; }
+.matrix-table tr[data-highlight=true] td,.matrix-table tr[data-highlight=true] .matrix-name { background:#ebeed7; }
+.matrix-date { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; border:1px solid transparent; border-radius:8px; min-width:31px; min-height:50px; padding:5px 2px; background:none; font-size:10px; color:#56674f; }
+.matrix-date strong { font-size:14px; color:#233d35; }
+.matrix-table .day { width:31px; min-height:32px; height:32px; font-size:12px; border:1px solid #c7d0bc; background:#f0f0e4; color:#526148; box-shadow:none; }
+.matrix-table .day[data-level="1"] { background:#becb8c; border-color:#859b4c; color:#283b18; }
+.matrix-table .day[data-level="2"] { background:#82a378; border-color:#50794c; color:#12351b; }
+.matrix-table .day[data-level="3"] { background:#286e57; border-color:#20583c; color:#fffdf0; }
+.matrix-table [aria-pressed=true] { outline:2px solid #b1772b; outline-offset:-2px; }
+.legend-cell { display:grid; place-items:center; width:23px; height:23px; background:#eeeee1; border:1px solid #c7d0bc; border-radius:5px; font-size:11px; color:#526148; }
+.legend-cell.filled { background:#145baf; color:#fff; border-color:#124c95; }
+#day-detail { background:#ecefdc; border-color:#bdcba3; padding:18px; }
+#day-detail h4 { margin:0 0 14px; font-size:15px; }
+.day-comparison-line { display:grid; grid-template-columns:85px minmax(0,1fr); gap:12px; padding:10px 0; border-top:1px solid #cbd4ba; font-size:13px; }
+.day-comparison-line span { line-height:1.7; color:#425639; }
+.pair-scores>div { flex:1; color:var(--pair-a); }
+.pair-scores>div:last-child { color:var(--pair-b); }
+.pair-result>p { margin-top:16px; font-size:13px; line-height:1.7; color:#4e6047; text-align:center; }
+@media(max-width:800px) { .groups { background:#f1f4fcf7; } .compare-row { grid-template-columns:115px minmax(0,1fr) 110px; gap:12px; } }
+@media(max-width:600px) {
+ .panel-kicker,.panel-tag { font-size:12px; }
+ .compare-row { grid-template-columns:90px minmax(36px,1fr) 87px; gap:8px; padding:10px 3px; }
+ .compare-person { font-size:12px; }
+ .compare-person .avatar { width:24px; height:27px; font-size:10px; margin-right:4px; }
+ .compare-value { font-size:12px; }
+ .compare-value small { font-size:11px; }
+ .compare-track { height:16px; }
+ .matrix-table .matrix-name { min-width:76px; padding-left:9px; padding-right:9px; }
+ .matrix-person { font-size:12px; }
+ .matrix-person .avatar { display:none; }
+ .matrix-table .day { width:27px; }
+ .matrix-date { min-width:27px; font-size:10px; }
+ .matrix-table th,.matrix-table td { padding-inline:2px; }
+ .matrix-table th:last-child,.matrix-table td:last-child { padding-right:2px; }
+ .day-comparison-line { grid-template-columns:65px minmax(0,1fr); gap:8px; font-size:12px; }
 }
-@media(max-width:360px) { .bar,main { padding-inline:14px; } h1 { font-size:31px; } .date { padding:9px; } .date-day { font-size:14px; } .game-title { font-size:14px; } .game-meta { font-size:9px; } .word-art { transform:rotate(-9deg) scale(.72); } }
-@media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } .game:hover,.game:nth-child(even):hover,.game:active,.group-button:hover,.group-button:active,.mosaic-card:hover { transform:none; } .flight-layer { display:none; } }
+
+/* Bright, connected, and part of the same group board. */
+header { background:#f8faff; }
+.top-link[aria-current],.top-link:hover { background:#e5edff; color:var(--primary); }
+.calendar-mark { color:#071c2f; }
+.group-button { background:#eaf0f7; }
+.group-button[aria-pressed=true] { background:linear-gradient(135deg,#eaff5b,var(--signal)); border-color:#b5cf15; color:#283d21; }
+.club-progress { background:#edf3fa; }
+.completion-grid .filled { background:#179278; box-shadow:inset 0 1px 0 #7cddbc,0 2px 0 #076b55; }
+.game[aria-pressed=true] { background:#e9f0ff; border-color:var(--primary); }
+.game-icon { background:linear-gradient(140deg,color-mix(in srgb,var(--game) 88%,#fff),var(--game)); }
+.mosaic { background:radial-gradient(circle,#84a8d12b .8px,transparent 1px) 0 0/12px 12px,#f2f6ff; }
+.mosaic-piece[data-leader=true] { box-shadow:inset 0 0 0 1px #ffffff55,0 0 0 2px #d8ee38,0 4px 0 #19346124; }
+.mosaic-piece[data-highlight=true],#board tbody tr[data-highlight=true] { outline:3px solid #ffbf30; outline-offset:-1px; }
+.standing-badge { display:flex; align-items:center; justify-content:center; gap:4px; min-height:25px; padding:4px 6px; margin-top:2px; border-radius:7px; font:800 11px Nunito,sans-serif; color:#fff; background:#00000015; }
+.standing-badge .ui-icon { width:13px; height:13px; }
+.standing-badge[data-leader=true] { background:var(--signal); color:#253811; }
+.list-standing { display:block; font-size:11px; font-weight:700; color:#405d85; margin:5px 0 0 38px; }
+.list-standing .ui-icon { width:13px; height:13px; margin-right:3px; color:#956100; }
+.board-shell { border:1px solid #c6d5ea; border-radius:var(--radius); background:#fff; box-shadow:var(--surface-shadow); overflow:hidden; }
+.board-shell>.board { border:0; border-radius:0; box-shadow:none; }
+.standings { padding:24px; background:linear-gradient(180deg,#f0f5ff,#fff 240px); border-top:1px solid #cbd8ed; scroll-margin-top:120px; }
+.standings-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.standings-heading h3 { font:500 29px Fredoka,Nunito,sans-serif; color:#17375d; }
+.standings-heading .panel-kicker { color:#526d8b; }
+.standings-context { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+.scope-button { min-height:40px; padding:9px 12px; border:1px solid #bed0e8; border-radius:10px; background:#fff; color:#416086; font-size:12px; font-weight:800; }
+.scope-button[aria-pressed=true] { background:var(--primary); color:#fff; border-color:var(--primary); }
+.period-controls .filter { background:white; border-color:#bdcee7; color:#36577f; }
+.period-controls .filter[aria-pressed=true] { background:var(--signal); color:#2b4125; border-color:#a8c019; }
+.standings .panel-tag { background:#e3ecfc; color:#36577f; }
+.leader-story { display:flex; align-items:center; gap:14px; padding:18px; border:1px solid #e7ca62; border-radius:14px; background:linear-gradient(120deg,#fff3ab,#fff9d9); margin-bottom:18px; }
+.race-trophy { display:grid; place-items:center; flex:0 0 auto; width:44px; height:46px; border-radius:13px; background:#ffcf32; color:#725000; box-shadow:inset 0 2px 0 #fff5a1,0 3px 0 #d49c37; }
+.race-trophy .ui-icon { width:26px; height:26px; }
+.leader-story strong { display:block; font-size:16px; color:#55431b; }
+.leader-story p { font-size:13px; color:#6e5a2f; margin-top:5px; line-height:1.6; }
+.compare-row { grid-template-columns:156px minmax(0,1fr) 140px; padding:10px; gap:14px; }
+.compare-row:hover { background:#f1f5ff; }
+.compare-row[aria-pressed=true] { background:#e8f0ff; border-color:#709bd3; }
+.compare-person { gap:2px; }
+.race-rank { display:inline-block; width:18px; font-size:12px; color:#627b9a; }
+.compare-track { background:#e3ebf7; }
+.compare-value small { color:#536c8c; }
+.compare-row[data-leader=true] .compare-value small { color:#355b19; font-weight:800; }
+.standings-selection,.standings-total { color:#4c6480; font-size:12px; line-height:1.7; margin-top:16px; }
+.standings-total { padding-top:12px; border-top:1px solid #dae3f1; }
+.shared-history { margin-top:20px; border-top:1px solid #d2def0; padding-top:16px; }
+.shared-history>summary { display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer; list-style:none; font-size:14px; font-weight:800; color:#315a90; min-height:44px; }
+.shared-history>summary::-webkit-details-marker { display:none; }
+.shared-history>summary>span { display:grid; place-items:center; width:26px; height:26px; border-radius:8px; background:#e4edfc; font-size:20px; }
+.shared-history[open]>summary { margin-bottom:16px; }
+.shared-history .panel-heading h4 { font-size:17px; margin:0; color:#2b4c75; }
+.standings .stats-note { font-size:12px; color:#596f88; }
+.matrix-table tr[data-highlight=true] td,.matrix-table tr[data-highlight=true] .matrix-name { background:#e8f0ff; }
+.matrix-table .day[data-level="1"] { background:#9cdef3; color:#204c62; border-color:#64b4ce; }
+.matrix-table .day[data-level="2"] { background:#65bbd8; color:#133d58; border-color:#398fb6; }
+.matrix-table .day[data-level="3"] { background:#145baf; color:white; border-color:#124c95; }
+.matrix-table [aria-pressed=true] { outline-color:#a76100; }
+#day-detail { background:#eaf1ff; border-color:#b8cdeb; color:#284a74; }
+.day-comparison-line { border-color:#c4d5ec; }
+.day-comparison-line span { color:#3f5d7e; }
+@media(max-width:800px) { .groups { background:#f1f4fcf7; } }
+@media(max-width:600px) {
+ .standings { padding:20px 14px; }
+ .standings-heading h3 { font-size:26px; }
+ .standings-heading { gap:12px; }
+ .standings-context { gap:12px; }
+ .leader-story { padding:14px 12px; gap:12px; align-items:start; }
+ .leader-story strong { font-size:14px; }
+ .leader-story p { font-size:12px; }
+ .race-trophy { width:34px; height:37px; border-radius:10px; }
+ .race-trophy .ui-icon { width:22px; height:22px; }
+ .compare-row { grid-template-columns:104px minmax(27px,1fr) 93px; gap:7px; padding-inline:0; }
+ .compare-person { font-size:12px; }
+ .compare-person .avatar { width:23px; margin-right:3px; }
+ .race-rank { width:12px; font-size:11px; }
+ .compare-value { font-size:12px; }
+ .compare-value small { font-size:11px; }
+ .standing-badge { font-size:10px; padding-inline:4px; }
+ .list-standing { margin-left:0; font-size:11px; }
+}
+@media(max-width:1100px) { .bar,main { padding-inline:32px; } .workspace { grid-template-columns:200px minmax(0,1fr); gap:24px; } .club-sidebar .activity { padding-inline:20px; } .groups { padding-inline:12px; } .group-button { padding:10px; font-size:13px; gap:8px; } .group-count { width:21px; height:21px; } .games { grid-template-columns:repeat(2,minmax(0,1fr)); } .game { display:grid; grid-template-columns:64px minmax(0,1fr) 12px; align-items:center; gap:12px; padding:12px; } .game-icon { height:72px; margin:0; } .game-title { font-size:16px; } .word-art,.connection-art { transform:scale(.65) rotate(-7deg); } .quillion-art { transform:scale(.8) rotate(-10deg); } .globe-art { width:52px; height:52px; } .game[aria-pressed=true]::after { display:none; } .game[aria-pressed=true] .arrow { display:block; position:static; color:var(--purple); } .board-context { padding-inline:20px; } .mosaic { padding:20px; } }
+@media(max-width:800px) { .cover-stack { display:none; } .workspace { grid-template-columns:minmax(0,1fr); } .club-sidebar { position:static; display:contents; } .groups { position:sticky; top:0; z-index:10; background:#f1f4fcf7; backdrop-filter:blur(12px); padding:16px 0 20px; border-block:1px solid #d2d9cd; border-radius:0; } .groups-label { margin:0 0 12px; font-size:12px; } .group-buttons { flex-direction:row; overflow-x:auto; padding:4px 4px 7px; margin:-4px -4px -7px; scrollbar-width:thin; } .group-button { flex:0 0 auto; min-height:48px; padding:10px 14px; font-size:14px; gap:9px; } .group-count { margin-left:4px; } .activity { padding:0; border:0; margin-top:-4px; display:flex; justify-content:space-between; align-items:center; gap:16px; } .activity-copy { flex-direction:row; align-items:center; gap:12px; } .activity h2 { font-size:18px; margin-bottom:4px; } .activity p { font-size:12px; } .club-progress { display:none; } .stats-link { margin-top:0; white-space:nowrap; } .mosaic { grid-template-columns:repeat(auto-fit,minmax(136px,1fr)); } .main-desk { min-width:0; } .games { grid-template-columns:repeat(4,minmax(0,1fr)); } .game { display:flex; padding:10px 10px 14px; gap:0; } .game-icon { height:92px; margin-bottom:12px; } .game-title { font-size:15px; } .game-meta { font-size:12px; } .game[aria-pressed=true] .arrow { display:none; } .game[aria-pressed=true]::after { display:block; width:16px; height:16px; top:15px; right:14px; } .word-art,.connection-art { transform:rotate(-7deg); } .quillion-art { transform:rotate(-10deg); } }
+@media(max-width:600px) { .bar,main { padding-inline:20px; } .bar { min-height:72px; gap:12px; } .brand { font-size:25px; gap:8px; } .logo { width:31px; height:34px; border-radius:10px; } .top-nav { gap:0; } .top-link { font-size:0; padding:9px; } .top-link .ui-icon { width:21px; height:21px; } main { padding-top:24px; } .page-head { align-items:start; gap:16px; margin-bottom:24px; } h1 { font-size:34px; max-width:260px; } .title-kicker { font-size:12px; } .day-art { margin-top:4px; } .date { padding:0; border:0; gap:0; text-align:right; } .calendar-mark { display:none; } .date-weekday { font-size:12px; } .date-day { font-size:15px; white-space:nowrap; } .workspace { gap:20px; } .activity { align-items:start; } .activity-copy { flex-wrap:wrap; gap:12px; } .friend-stack .avatar { width:29px; height:31px; } .stats-link { font-size:12px; padding:10px 12px; } .activity h2 { font-size:18px; } .section-head { gap:12px; } .section-head h2 { font-size:24px; } .section-meta { font-size:12px; } .games { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; } .game { padding:10px 10px 14px; } .game-icon { height:86px; margin-bottom:12px; } .game-title { font-size:16px; } .game-meta { font-size:12px; } .game-tools { flex-wrap:wrap; gap:12px; } .game-hint { font-size:12px; } .layout { gap:28px; } .board-head { padding:20px; } .board h3 { font-size:28px; } .board-label { font-size:12px; } .board-context { padding:12px 16px; font-size:12px; } .view-button { font-size:12px; padding:8px 10px; min-height:36px; } .board-context>span { flex:1 1 115px; } .mosaic { padding:16px; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; } .mosaic-piece { padding:16px 6px 8px; } .mosaic-card strong { font-size:15px; } .mosaic-score { font-size:23px; } .mosaic-piece .cheer { min-height:40px; font-size:12px; } table { font-size:13px; } th { font-size:12px; padding:12px 5px; } td { padding:12px 5px; } th:first-child,td:first-child { padding-left:12px; width:24px; } th:last-child,td:last-child { padding-right:12px; } .avatar { width:26px; height:29px; margin-right:4px; font-size:12px; } .score-tile { min-width:52px; font-size:12px; padding:8px; min-height:44px; } .cheer { font-size:12px; padding:7px 3px; min-height:36px; } .streak { font-size:12px; } .streak .ui-icon { width:14px; height:14px; margin-right:0; } .pending { font-size:12px; } .board-foot { flex-wrap:wrap; padding:16px; font-size:12px; } .board-note { align-items:start; font-size:12px; } .board-note .ui-icon { display:none; } .board-note span:last-child { white-space:nowrap; } .cheer-note { font-size:12px; }         .player-card { padding:20px; } dialog { padding:20px; } .dialog-head h2 { font-size:25px; } .week-strip { gap:4px; } .week-day { font-size:11px; } .week-day strong { font-size:14px; height:52px; border-radius:8px; } .week-totals { gap:8px; } .week-totals strong { font-size:26px; } footer { font-size:12px; flex-wrap:wrap; gap:8px; } }
+@media(max-width:600px) {
+ .top-link[aria-current] { display:none; }
+ .top-link { font-size:13px; gap:7px; }
+ .long-nav-label { display:none; }
+ .short-nav-label { display:inline; }
+ .page-head { display:block; position:relative; }
+ .page-head .title-kicker { max-width:calc(100% - 115px); min-height:40px; align-items:start; margin-bottom:10px; }
+ .page-head h1 { max-width:none; }
+ h1 em { display:block; }
+ .day-art { position:absolute; top:0; right:0; margin:0; }
+ .activity { display:block; }
+ .activity-copy { flex-direction:row; flex-wrap:nowrap; align-items:center; gap:16px; }
+ .activity .stats-link { margin-top:16px; }
+ .game[aria-pressed=true] .arrow { display:block; position:absolute; top:14px; right:15px; font-size:0; color:white; width:16px; height:18px; }
+ .game[aria-pressed=true] .arrow::after { display:block; font-size:12px; line-height:18px; text-align:center; }
+}
+@media(max-width:360px) { .bar,main { padding-inline:16px; } h1 { font-size:30px; } .title-kicker { font-size:11px; } .date-day { font-size:14px; } .game-title { font-size:15px; } .group-button { padding-inline:10px; gap:7px; font-size:13px; } .group-symbol { width:25px; } .group-count { width:19px; height:19px; } .view-button { padding-inline:8px; } .streak { white-space:normal; font-size:12px; } .player .avatar { display:none; } }
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } .game:hover,.game:active,.group-button:active,.mosaic-piece:hover { transform:none; } .flight-layer { display:none; } }
 </style>
 </head>
 <body>
+<svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="icon-puzzle" viewBox="0 0 24 24"><path d="M4 4h5c-1-4 7-4 6 0h5v5c4-1 4 7 0 6v5h-5c1-4-7-4-6 0H4v-5c4 1 4-7 0-6Z"/></symbol><symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol><symbol id="icon-moon" viewBox="0 0 24 24"><path d="M20 14a8 8 0 0 1-10-10 8.5 8.5 0 1 0 10 10Z"/></symbol><symbol id="icon-heart" viewBox="0 0 24 24"><path d="M20.5 5.5a5 5 0 0 0-7 0L12 7l-1.5-1.5a5 5 0 0 0-7 7L12 21l8.5-8.5a5 5 0 0 0 0-7Z"/></symbol><symbol id="icon-heart-fill" viewBox="0 0 24 24"><path fill="currentColor" d="M20.5 5.5a5 5 0 0 0-7 0L12 7l-1.5-1.5a5 5 0 0 0-7 7L12 21l8.5-8.5a5 5 0 0 0 0-7Z"/></symbol><symbol id="icon-spark" viewBox="0 0 24 24"><path d="m12 2 2.8 7.2L22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8Z"/></symbol><symbol id="icon-flame" viewBox="0 0 24 24"><path d="M12 2c2 6-4 7-3 11 2-1 4-3 5-5 3 3 6 6 4 10-2 4-9 5-12 0C3 13 7 8 12 2Z"/><path d="M12 14c3 3 3 5 0 7-3-1-3-4 0-7Z"/></symbol><symbol id="icon-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol><symbol id="icon-list" viewBox="0 0 24 24"><path d="M8 5h13M8 12h13M8 19h13M3 5h.1M3 12h.1M3 19h.1"/></symbol><symbol id="icon-chart" viewBox="0 0 24 24"><path d="M4 20V11h4v9m2 0V4h4v16m2 0v-6h4v6"/></symbol><symbol id="icon-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m2 3c3 1 3 3 3 6"/></symbol><symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol><symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol><symbol id="icon-dice" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M7 7h.01M17 7h.01M12 12h.01M7 17h.01M17 17h.01" stroke-width="3"/></symbol><symbol id="icon-cup" viewBox="0 0 24 24"><path d="M5 7h12v6a6 6 0 0 1-12 0Zm12 0h2a3 3 0 0 1 0 6h-2M8 3v1m6-1v1M4 21h14"/></symbol><symbol id="icon-trophy" viewBox="0 0 24 24"><path d="M7 3h10v5a5 5 0 0 1-10 0ZM7 5H3v2a4 4 0 0 0 5 4m9-6h4v2a4 4 0 0 1-5 4M12 13v7m-4 1h8"/></symbol><symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol></defs></svg>
+<a class="skip-link" href="#today">Skip to today’s puzzles</a>
 <header>
-  <div class="bar">
-    <a class="brand" href="./index.html"><span class="logo" aria-hidden="true">✦</span>unemploydle</a><span class="header-note">A fresh little challenge, every day.</span>
-  </div>
+  <div class="bar"><a class="brand" href="./index.html"><span class="logo" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-puzzle"></use></svg></span>unemploydle</a><nav class="top-nav" aria-label="Main navigation"><a class="top-link" href="#today" aria-current="page" aria-label="Today’s puzzles"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-puzzle"></use></svg><span>Today’s puzzles</span></a><a class="top-link" data-stats-link href="#group-stats" aria-label="Group standings"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chart"></use></svg><span class="long-nav-label">Group standings</span><span class="short-nav-label">Race</span></a></nav></div>
 </header>
 <main>
-  <div class="page-head"><div><p class="title-kicker">The daily puzzle hangout</p><h1>Hello,<br><em>puzzle people.</em></h1></div><div class="day-art"><span class="day-sticker" aria-hidden="true">a little<br>friendly<br>competition</span><time class="date" id="date"></time></div></div>
-  <div class="groups">
-    <h2 class="groups-label" id="groups-label">Your groups</h2>
-    <div class="group-buttons" id="groups" role="group" aria-labelledby="groups-label"></div>
-  </div>
-  <section class="activity" aria-labelledby="activity-title">
-    <div class="activity-copy"><div class="friend-stack" id="friend-stack" aria-hidden="true"></div><div><h2 id="activity-title"></h2><p id="activity-summary" aria-live="polite"></p></div></div>
-    <a href="#group-stats" class="stats-link">Our puzzle stats <span aria-hidden="true">↗</span></a>
-  </section>
-  <div class="layout" id="today">
-    <section aria-labelledby="games-title">
-      <div class="section-head"><h2 id="games-title"><span class="step" aria-hidden="true">1</span>Pick a puzzle</h2><span class="section-meta" id="game-count"></span></div>
-      <div class="games" id="games"></div>
-      <div class="game-tools"><button class="pick-for-me" id="pick-for-me" type="button"><span class="dice" aria-hidden="true">⚄</span>Surprise me</button><p class="game-hint">Can’t pick? Let the dice decide.</p></div>
-      <div class="play-note"><strong>There’s more behind every score.</strong>Tap a score tile to peek at a friend’s week. Or try the puzzle view and make a little mosaic of your day.</div>
-    </section>
-    <section class="board-section" aria-labelledby="board-title">
-      <div class="section-head"><h2 id="board-title"><span class="step" aria-hidden="true">2</span>See how everyone did</h2><span class="section-meta">Today</span></div>
-      <div class="board" id="board" aria-live="polite" aria-atomic="true"></div><div class="board-note"><span>Tap a score. There’s a whole week inside.</span><span>Sample scores</span></div><p class="cheer-note">A little cheer for a friend? Yours are saved on this device.</p>
-    </section>
-  </div>
-  <details class="stats" id="group-stats">
-    <summary><h2 id="stats-title">Group stats</h2><span class="stats-toggle">The bigger picture</span></summary><span class="preview">Sample history</span>
-    <p class="stats-note">Every player has a story. See who’s playing, celebrate wins, and tap a colored day to see what happened. Pick a game to compare scores.</p>
-    <div class="stats-controls">
-      <div class="filter-row" id="stats-games" role="group" aria-label="Filter statistics by game"></div>
-      <div class="filter-row" role="group" aria-label="Statistics period">
-        <button type="button" class="filter" data-period="7" aria-pressed="false">7 days</button>
-        <button type="button" class="filter" data-period="28" aria-pressed="true">28 days</button>
+  <div class="page-head"><div><p class="title-kicker"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-sun"></use></svg>A little play. A lot of good company.</p><h1>The daily <em>get-together.</em></h1></div><div class="day-art"><div class="cover-stack" aria-hidden="true"><i>P</i><i><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-spark"></use></svg></i><i>L</i><i>Y</i></div><time class="date" id="date"></time></div></div>
+  <div class="workspace">
+    <aside class="club-sidebar" aria-label="Your puzzle groups">
+      <div class="groups"><h2 class="groups-label" id="groups-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-people"></use></svg>Your groups</h2><div class="group-buttons" id="groups" role="group" aria-labelledby="groups-label"></div></div>
+      <section class="activity" aria-labelledby="activity-title"><div class="activity-copy"><div class="friend-stack" id="friend-stack" aria-hidden="true"></div><div><h2 id="activity-title"></h2><p id="activity-summary"></p></div></div><div class="club-progress"><div class="progress-head"><span>Today, together</span><strong id="completion-fraction"></strong></div><div class="completion-grid" id="completion-grid" aria-hidden="true"></div><p class="progress-caption" id="progress-caption"></p></div><a class="stats-link" data-stats-link href="#group-stats"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chart"></use></svg>Group standings<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-arrow"></use></svg></a></section>
+    </aside>
+    <div class="main-desk">
+      <div class="layout" id="today" tabindex="-1">
+        <section aria-labelledby="games-title"><div class="section-head"><h2 id="games-title">Pick a little challenge</h2><span class="section-meta" id="game-count"></span></div><div class="games" id="games"></div><div class="game-tools"><button class="pick-for-me" id="pick-for-me" type="button"><span class="dice" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-dice"></use></svg></span>Pick for me</button><p class="game-hint">One puzzle. Everyone’s own little adventure.</p></div></section>
+        <section class="board-section" aria-labelledby="board-title"><div class="section-head"><h2 id="board-title">All the pieces of today</h2><span class="section-meta">Your shared board</span></div><div class="board-shell"><div class="board" id="board"></div>
+      <section class="standings" id="group-stats" aria-labelledby="stats-title">
+        <div class="standings-heading"><div><p class="panel-kicker">Same friends. The bigger picture.</p><h3 id="stats-title">The friendly race</h3></div><div class="filter-row period-controls" role="group" aria-label="Standings period"><button type="button" class="filter" data-period="7" aria-pressed="true">7 days</button><button type="button" class="filter" data-period="28" aria-pressed="false">28 days</button></div></div>
+        <div class="standings-context"><div class="filter-row" role="group" aria-label="Standings games"><button class="scope-button" type="button" data-standing-scope="game" aria-pressed="true">This puzzle</button><button class="scope-button" type="button" data-standing-scope="all" aria-pressed="false">All group games</button></div><span class="panel-tag" id="comparison-scope"></span></div>
+        <div class="leader-story" id="leader-story" aria-live="polite"></div>
+        <div class="comparison-chart" id="comparison-chart"></div>
+        <p class="standings-selection" id="standings-selection" role="status"></p>
+        <p class="standings-total" id="stats-summary"></p>
+        <details class="shared-history"><summary>See the days you played together<span aria-hidden="true">+</span></summary><div id="player-stats"><div class="panel-heading"><h4 id="calendar-title">Your days, side by side</h4><span class="panel-tag" id="calendar-range"></span></div><p class="chart-explanation">The same dates line up for every friend. Tap a date to compare everyone’s results.</p><div class="matrix-scroll" tabindex="0" role="region" aria-label="Shared activity calendar; scroll to see all dates" id="group-calendar"></div><div class="legend"><span class="legend-cell">0</span>No recorded plays <span class="legend-cell filled">1+</span>Games played</div><div class="detail" id="day-detail" aria-live="polite">Pick a day above to see everyone’s results together.</div></div></details>
+        <p class="stats-note" id="stats-explainer"></p>
+      </section></div><div class="board-note"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-spark"></use></svg>Tap a friend’s score to peek at their week.</span><span>Sample scores</span></div><p class="cheer-note">Cheer a friend on. Your cheers are saved on this device.</p></section>
       </div>
+
     </div>
-    <div class="summary" id="stats-summary" aria-live="polite"></div>
-    <div class="stats-table" id="player-stats"></div>
-    <div class="legend">Less <span class="day"></span><span class="day" data-level="1"></span><span class="day" data-level="2"></span><span class="day" data-level="3"></span> More games played · each tile is one day · oldest → today</div>
-    <div class="detail" id="day-detail" aria-live="polite">Select a day in a player’s heatmap to explore their results.</div>
-    <p class="stats-note" id="stats-explainer"></p>
-  </details>
-  <footer><span>Same friends. Fresh puzzles. Maybe a cup of tea.</span><span>Save you a seat tomorrow ♡</span></footer>
+  </div>
+  <footer><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-cup"></use></svg>Good puzzles are better with people.</span><span>A fresh little get-together tomorrow.</span></footer>
 </main>
 <dialog id="score-dialog" aria-labelledby="score-dialog-title"></dialog>
 <div id="cheer-announcement" role="status" aria-live="polite"></div>
@@ -270,10 +448,10 @@ footer { display:flex; justify-content:space-between; gap:14px; margin-top:30px;
 </template>
 <script>
 const games = {
-  wordle: { name: "Wordle", icon: "W", color: "#a8cc98", url: "https://www.nytimes.com/games/wordle/index.html" },
-  connections: { name: "Connections", icon: "⠿", color: "#cbb2e4", url: "https://www.nytimes.com/games/connections" },
-  quillion: { name: "The Quillion", icon: "Q", color: "#f8c96c" },
-  worldle: { name: "Worldle", icon: "◎", color: "#a9d9e7" },
+  wordle: { name: "Wordle", icon: "W", color: "#006e59", url: "https://www.nytimes.com/games/wordle/index.html" },
+  connections: { name: "Connections", icon: "⠿", color: "#7131b0", url: "https://www.nytimes.com/games/connections" },
+  quillion: { name: "The Quillion", icon: "Q", color: "#8c5f00" },
+  worldle: { name: "Worldle", icon: "◎", color: "#1850cf" },
 };
 
 const groups = {
@@ -301,7 +479,7 @@ const groupButtons = document.querySelector("#groups");
 const groupStorageKey = "unemploydle:lastGroup";
 let activeGroup = "lunch";
 let selectedGame;
-let boardView = "rows";
+let boardView = "tiles";
 try {
   const savedGroup = localStorage.getItem(groupStorageKey);
   if (Object.hasOwn(groups, savedGroup)) activeGroup = savedGroup;
@@ -309,7 +487,9 @@ try {
 const gameList = document.querySelector("#games");
 const board = document.querySelector("#board");
 const template = document.querySelector("#game-template");
-const colors = ["#dab8ff", "#a1d9f4", "#a7e2bc", "#f2bdac", "#e3b1d8"];
+const colors = ["#006e59", "#1b52d9", "#bf3f22", "#7b33be", "#b62c6a", "#006f94", "#b13c56"];
+const playerColors = Object.fromEntries([...new Set(Object.values(groups).flatMap(group => group.members))].map((name, i) => [name, colors[i % colors.length]]));
+function playerColor(name) { return playerColors[name]; }
 
 const cheerStorageKey = "unemploydle:cheers";
 let cheers = new Set();
@@ -317,6 +497,11 @@ try {
   const savedCheers = JSON.parse(localStorage.getItem(cheerStorageKey) || "[]");
   if (Array.isArray(savedCheers)) cheers = new Set(savedCheers.filter(key => typeof key === "string"));
 } catch { /* Little cheers still work when storage is unavailable. */ }
+function icon(name) { return `<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-${name}"></use></svg>`; }
+function cheerMarkup(name) {
+  const added = cheers.has(cheerKey(name));
+  return `<button class="cheer" aria-live="off" type="button" data-player="${name}" aria-label="${added ? "Remove your cheer for" : "Cheer for"} ${name}" aria-pressed="${added}">${icon(added ? "heart-fill" : "heart")}<span>${added ? "Cheered!" : "Cheer"}</span></button>`;
+}
 function cheerKey(name) { return `${dateElement.dateTime}:${activeGroup}:${selectedGame}:${name}`; }
 function toggleCheer(button) {
   const name = button.dataset.player;
@@ -324,9 +509,12 @@ function toggleCheer(button) {
   const added = !cheers.has(key);
   added ? cheers.add(key) : cheers.delete(key);
   try { localStorage.setItem(cheerStorageKey, JSON.stringify([...cheers])); } catch { /* Keep this visit's cheers. */ }
-  button.setAttribute("aria-pressed", String(added));
-  button.setAttribute("aria-label", `${added ? "Remove your cheer for" : "Cheer for"} ${name}`);
-  button.innerHTML = `<span class="cheer-heart" aria-hidden="true">${added ? "♥" : "♡"}</span>${added ? "Cheered!" : "Cheer"}`;
+  for (const cheer of board.querySelectorAll(".cheer")) {
+    if (cheer.dataset.player !== name) continue;
+    cheer.setAttribute("aria-pressed", String(added));
+    cheer.setAttribute("aria-label", `${added ? "Remove your cheer for" : "Cheer for"} ${name}`);
+    cheer.innerHTML = `${icon(added ? "heart-fill" : "heart")}<span>${added ? "Cheered!" : "Cheer"}</span>`;
+  }
   document.querySelector("#cheer-announcement").textContent = added ? `A little hooray for ${name}! Your cheer is saved on this device.` : `Your cheer for ${name} was removed.`;
   if (added) sprinkle(button);
 }
@@ -338,7 +526,7 @@ function sprinkle(element) {
     const bit = document.createElement("span");
     bit.className = "sparkle";
     bit.setAttribute("aria-hidden", "true");
-    bit.textContent = ["✦", "♥", "✧", "•"][i % 4];
+    bit.innerHTML = icon(["spark", "heart", "spark", "check"][i % 4]);
     bit.style.color = ["#d36c35", "#bd507a", "#548955", "#8052b5"][i % 4];
     bit.style.left = `${rect.left + rect.width / 2}px`;
     bit.style.top = `${rect.top}px`;
@@ -370,20 +558,20 @@ function selectGame(gameId, reason = "game") {
   // All interpolated values are fixed demo data declared above.
   board.innerHTML = `
     <div class="board-head"><div><p class="board-label">${group.name} · today’s little victories</p><h3>${game.name}</h3></div><span class="board-symbol" aria-hidden="true">${game.icon}</span></div>
-    <div class="board-context"><span>${results.length} of ${group.members.length} friends have played</span><div class="mini-tiles" aria-hidden="true">${group.members.map((_, i) => `<span class="${i < results.length ? "filled" : ""}"></span>`).join("")}</div><div class="board-views" role="group" aria-label="Board view"><button class="view-button" type="button" data-view="rows" aria-pressed="${boardView === "rows"}">☷ List</button><button class="view-button" type="button" data-view="tiles" aria-pressed="${boardView === "tiles"}">▦ Puzzle</button></div></div>
+    <div class="board-context"><span>${results.length} of ${group.members.length} friends have played</span><div class="mini-tiles" aria-hidden="true">${group.members.map((_, i) => `<span class="${i < results.length ? "filled" : ""}"></span>`).join("")}</div><div class="board-views" role="group" aria-label="Board view"><button class="view-button" type="button" data-view="rows" aria-pressed="${boardView === "rows"}">${icon("list")}List</button><button class="view-button" type="button" data-view="tiles" aria-pressed="${boardView === "tiles"}">${icon("grid")}Pieces</button></div></div>
     <table ${boardView === "tiles" ? "hidden" : ""} aria-label="${game.name} scores">
-      <thead><tr><th scope="col">#</th><th scope="col">Player</th><th scope="col">Score</th><th scope="col"><span aria-hidden="true">🔥</span> Streak</th></tr></thead>
+      <thead><tr><th scope="col">#</th><th scope="col">Player</th><th scope="col">Score</th><th scope="col">${icon("flame")} Streak</th></tr></thead>
       <tbody>${[...results, ...waiting.map((name) => [name, "", null])].map(([name, score, streak], index) => `
-        <tr>
+        <tr data-player="${name}">
           <td class="rank">${score ? index + 1 : "—"}</td>
-          <td class="player"><span class="avatar" aria-hidden="true" style="--avatar:${colors[group.members.indexOf(name) % colors.length]}">${name[0]}</span>${name}</td>
-          <td class="${score ? "score" : "section-meta"}">${score ? `<button class="score-tile" aria-haspopup="dialog" type="button" data-player="${name}" aria-label="See ${name}’s ${game.name} week" data-initial="${name[0]}">${score}</button><button class="cheer" aria-live="off" type="button" data-player="${name}" aria-label="${cheers.has(cheerKey(name)) ? "Remove your cheer for" : "Cheer for"} ${name}" aria-pressed="${cheers.has(cheerKey(name))}"><span class="cheer-heart" aria-hidden="true">${cheers.has(cheerKey(name)) ? "♥" : "♡"}</span>${cheers.has(cheerKey(name)) ? "Cheered!" : "Cheer"}</button>` : `<span class="pending">Still brewing</span>`}</td>
-          <td class="streak">${streak === null ? "—" : "<span aria-hidden=\"true\">🔥</span> " + streak + " days"}</td>
+          <td class="player"><span class="avatar" aria-hidden="true" style="--avatar:${playerColor(name)}">${name[0]}</span>${name}<span class="list-standing" data-standings-player="${name}"></span></td>
+          <td class="${score ? "score" : "section-meta"}">${score ? `<button class="score-tile" aria-haspopup="dialog" type="button" data-player="${name}" aria-label="See ${name}’s ${game.name} week" data-initial="${name[0]}">${score}</button>${cheerMarkup(name)}` : `<span class="pending">Not yet</span>`}</td>
+          <td class="streak">${streak === null ? "—" : icon("flame") + " " + streak + " days"}</td>
         </tr>`).join("")}</tbody>
     </table>
-    <div class="mosaic" ${boardView === "rows" ? "hidden" : ""} aria-label="${game.name} puzzle board">${[...results, ...waiting.map(name => [name, "", null])].map(([name, score, streak], i) => `<button class="mosaic-card" aria-haspopup="dialog" type="button" data-player="${name}" style="--person-color:${colors[group.members.indexOf(name) % colors.length]};--avatar:${colors[group.members.indexOf(name) % colors.length]};--lean:${i % 2 ? 2 : -2}deg" aria-label="${name}: ${score || "not played yet"}. See their week."><span class="avatar" aria-hidden="true">${name[0]}</span><strong>${name}</strong><span class="mosaic-score">${score || "Not yet"}</span><small>${streak ? "🔥 " + streak + " days" : "A seat saved for you"}</small></button>`).join("")}</div>
+    <div class="mosaic" ${boardView === "rows" ? "hidden" : ""} aria-label="${game.name} puzzle board">${[...results, ...waiting.map(name => [name, "", null])].map(([name, score, streak], i) => `<article class="mosaic-piece" style="--person-color:${playerColor(name)};--avatar:${playerColor(name)};--lean:${i % 2 ? 1 : -1}deg"><button class="mosaic-card" aria-haspopup="dialog" type="button" data-player="${name}" aria-label="${name}: ${score || "not played yet"}. See their week."><span class="avatar" aria-hidden="true">${name[0]}</span><strong>${name}</strong><span class="mosaic-score">${score || "Not yet"}</span><small>${streak ? icon("flame") + " " + streak + " days" : "A piece still to come"}</small><span class="standing-badge" data-standings-player="${name}"></span></button>${score ? cheerMarkup(name) : `<p class="piece-waiting">Saving a seat</p>`}</article>`).join("")}</div>
     <div class="board-foot"><span>${results.length} of ${group.members.length} played</span>
-      ${game.url ? `<a href="${game.url}" target="_blank" rel="noopener">Play ${game.name} ↗</a>` : `<span>Make time for a puzzle break.</span>`}
+      ${game.url ? `<a href="${game.url}" target="_blank" rel="noopener">Play ${game.name} ${icon("arrow")}</a>` : `<span>Make time for a puzzle break.</span>`}
     </div>`;
   for (const tile of board.querySelectorAll(".score-tile, .mosaic-card")) tile.addEventListener("click", () => showPlayerWeek(tile.dataset.player));
   for (const view of board.querySelectorAll("[data-view]")) view.addEventListener("click", () => {
@@ -395,7 +583,10 @@ function selectGame(gameId, reason = "game") {
     assembleBoard("view");
   });
   for (const cheer of board.querySelectorAll(".cheer")) cheer.addEventListener("click", () => toggleCheer(cheer));
-  const needsScroll = reason === "game" && matchMedia("(max-width: 700px)").matches && board.getBoundingClientRect().top + 220 > innerHeight - 40;
+  document.querySelector("#cheer-announcement").textContent = `${group.name}, ${game.name}: ${results.length} of ${group.members.length} friends have played.`;
+  statsGame = standingScope === "all" ? "all" : gameId;
+  renderStats();
+  const needsScroll = reason === "game" && matchMedia("(max-width: 800px)").matches && board.getBoundingClientRect().top + 220 > innerHeight - 40;
   if (needsScroll) {
     document.querySelector(".board-section").scrollIntoView({ behavior: reducedMotion.matches ? "instant" : "smooth", block: "start" });
     if (!reducedMotion.matches) motionTimer = setTimeout(() => assembleBoard(reason), 350);
@@ -424,8 +615,6 @@ function renderGroup(reason = "group") {
   }
   selectGame(gameIds.includes(selectedGame) ? selectedGame : gameIds[0], reason);
   renderActivity();
-  renderStatsFilters();
-  renderStats();
 }
 
 // Deterministic demo history. Replace these records with saved results when accounts exist.
@@ -453,34 +642,22 @@ for (const [groupId, group] of Object.entries(groups)) {
   });
 }
 let statsGame = "all";
-let statsPeriod = 28;
-function metric(value, label, icon = "✦", caption = "") { return `<div class="metric"><span class="metric-icon" aria-hidden="true">${icon}</span><strong>${value}</strong><span class="metric-label">${label}</span>${caption ? `<span class="metric-caption">${caption}</span>` : ""}</div>`; }
+let statsPeriod = 7;
+let standingScope = "game";
+let statsFocusPlayer = null;
+let selectedStatsDate = null;
 function renderActivity() {
   const group = groups[activeGroup];
   const results = Object.values(group.games).flat();
   const players = new Set(results.map(([name]) => name));
   const total = group.members.length * Object.keys(group.games).length;
-  document.querySelector("#activity-title").textContent = `${group.name}’s daily get-together`;
-  document.querySelector("#activity-summary").textContent = `${players.size} of ${group.members.length} friends have joined in · ${results.length}/${total} puzzles finished today`;
-  document.querySelector("#friend-stack").innerHTML = group.members.map((name, i) => `<span class="avatar" style="--avatar:${colors[i % colors.length]};--tilt:${i % 2 ? 5 : -5}deg">${name[0]}</span>`).join("");
-}
-function renderStatsFilters() {
-  if (statsGame !== "all" && !Object.hasOwn(groups[activeGroup].games, statsGame)) statsGame = "all";
-  const container = document.querySelector("#stats-games");
-  container.replaceChildren();
-  for (const id of ["all", ...Object.keys(groups[activeGroup].games)]) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "filter";
-    button.textContent = id === "all" ? "All games" : games[id].name;
-    button.setAttribute("aria-pressed", String(statsGame === id));
-    button.addEventListener("click", () => {
-      statsGame = id;
-      renderStatsFilters();
-      renderStats();
-    });
-    container.append(button);
-  }
+  document.querySelector("#activity-title").textContent = group.name;
+  document.querySelector("#activity-summary").innerHTML = `<span>${group.members.length} friends · ${Object.keys(group.games).length} daily puzzles</span><br><span>${players.size} have played today.</span>`;
+  document.querySelector("#friend-stack").innerHTML = group.members.map((name, i) => `<span class="avatar" style="--avatar:${playerColor(name)};--tilt:${i % 2 ? 5 : -5}deg">${name[0]}</span>`).join("");
+  document.querySelector("#completion-fraction").textContent = `${results.length}/${total}`;
+  document.querySelector("#completion-grid").innerHTML = Array.from({length:total}, (_, i) => `<span class="${i < results.length ? "filled" : ""}"></span>`).join("");
+  document.querySelector("#progress-caption").textContent = `${results.length} puzzles finished. ${total - results.length} little adventures to go.`;
+
 }
 function filteredHistory() {
   const dates = new Set(Array.from({ length: statsPeriod }, (_, index) => dateKey(index)));
@@ -495,62 +672,115 @@ function daysLed(records, player) {
   }
   return wins.size;
 }
-function average(records) {
-  if (statsGame === "all") return "—";
-  const scores = records.filter(record => record.won);
-  if (!scores.length) return "—";
-  const unit = statsGame === "connections" ? " mistakes" : statsGame === "quillion" ? " pts" : " guesses";
-  return (scores.reduce((sum, record) => sum + record.value, 0) / scores.length).toFixed(1) + unit;
-}
 function resultLabel(record) {
   if (!record.won) return record.game === "connections" ? "4 mistakes · lost" : "X/6 · lost";
   return record.game === "connections" ? `${record.value} ${record.value === 1 ? "mistake" : "mistakes"}` : record.game === "quillion" ? `${record.value} pts` : `${record.value}/6`;
 }
+function comparisonData(records) {
+  return groups[activeGroup].members.map(name => ({name, color:playerColor(name),
+    played:records.filter(record => record.player === name).length, led:daysLed(records, name)}));
+}
+function standingSummary(rows) {
+  const sorted = [...rows].sort((a,b) => b.led - a.led);
+  const max = sorted[0]?.led || 0;
+  return {rows:sorted, max, leaders:max ? sorted.filter(row => row.led === max) : [], chasers:sorted.filter(row => row.led < max)};
+}
+function namesTogether(rows) { return new Intl.ListFormat("en-US", {style:"long",type:"conjunction"}).format(rows.map(row => row.name)); }
+function setStatsPlayer(name, records) {
+  statsFocusPlayer = name;
+  for (const row of document.querySelectorAll(".compare-row")) row.setAttribute("aria-pressed", String(row.dataset.player === name));
+  for (const row of document.querySelectorAll(".matrix-table .heatmap")) row.dataset.highlight = String(row.dataset.player === name);
+  for (const piece of board.querySelectorAll(".mosaic-piece")) piece.dataset.highlight = String(piece.querySelector(".mosaic-card").dataset.player === name);
+  for (const row of board.querySelectorAll("tbody tr")) row.dataset.highlight = String(row.dataset.player === name);
+  const summary = standingSummary(comparisonData(records));
+  const own = summary.rows.find(row => row.name === name);
+  const gap = summary.max - own.led;
+  document.querySelector("#standings-selection").textContent = `${name}: ${own.led} ${own.led === 1 ? "day" : "days"} in first.${gap ? ` ${gap} more to draw level with the lead.` : summary.max ? " Setting the pace!" : " A fresh chance every day."} Highlighted on today’s board and the shared calendar.`;
+}
+function renderComparison(records) {
+  const summary = standingSummary(comparisonData(records));
+  const {rows, max, leaders, chasers} = summary;
+  const scope = statsGame === "all" ? "All group games" : games[statsGame].name;
+  document.querySelector("#comparison-scope").textContent = `${scope} · last ${statsPeriod} days`;
+  const leadText = !max ? "The race is just getting started."
+    : leaders.length === rows.length ? `Everyone’s tied at ${max} ${max === 1 ? "day" : "days"} in first!`
+    : `${namesTogether(leaders)} ${leaders.length > 1 ? "share the lead with" : "leads with"} ${max} ${max === 1 ? "day" : "days"} in first.`;
+  const nearest = chasers.length ? chasers.filter(row => row.led === chasers[0].led) : [];
+  const gap = nearest.length ? max - nearest[0].led : 0;
+  const chaseText = nearest.length ? `${namesTogether(nearest)} ${nearest.length > 1 ? "need" : "needs"} ${gap} more first-place ${gap === 1 ? "day" : "days"} to draw level.` : max ? "Every shared first-place day counts for each tied friend." : "First-place days will appear as results come in.";
+  document.querySelector("#leader-story").innerHTML = `<span class="race-trophy" aria-hidden="true">${icon("trophy")}</span><div><strong>${leadText}</strong><p>${chaseText}</p></div>`;
+  document.querySelector("#comparison-chart").innerHTML = rows.map(row => {
+    const gap = max - row.led;
+    const rank = max ? rows.findIndex(other => other.led === row.led) + 1 : "—";
+    const label = !max ? "Ready to start" : gap ? `${gap} ${gap === 1 ? "day" : "days"} behind` : leaders.length > 1 ? "Joint lead" : "Leading";
+    return `<button type="button" class="compare-row" data-player="${row.name}" data-leader="${max > 0 && row.led === max}" aria-pressed="${statsFocusPlayer === row.name}" style="--player-color:${row.color}" aria-label="${row.name}: ${row.led} days in first, ${label}, ${scope}, last ${statsPeriod} days. Highlight on today’s board."><span class="compare-person"><span class="race-rank" aria-hidden="true">${rank}</span><span class="avatar" aria-hidden="true" style="--avatar:${row.color}">${row.name[0]}</span><span>${row.name}</span></span><span class="compare-track" aria-hidden="true"><span class="compare-fill" style="width:${max ? row.led / max * 100 : 0}%"></span></span><span class="compare-value">${row.led} ${row.led === 1 ? "day" : "days"} in first<small>${label}</small></span></button>`;
+  }).join("");
+  for (const button of document.querySelectorAll(".compare-row")) button.addEventListener("click", () => setStatsPlayer(button.dataset.player, records));
+  for (const badge of board.querySelectorAll("[data-standings-player]")) {
+    const row = rows.find(row => row.name === badge.dataset.standingsPlayer);
+    const leading = max > 0 && row.led === max;
+    badge.innerHTML = `${leading ? icon("trophy") : ""}${row.led} ${row.led === 1 ? "day" : "days"} in first`;
+    badge.title = `${scope} · last ${statsPeriod} days`;
+    badge.setAttribute("aria-label", `${row.led} days in first, ${scope}, last ${statsPeriod} days${leading ? ", leading" : ""}`);
+    badge.dataset.leader = String(leading);
+    const scoreButton = badge.closest(".mosaic-card");
+    if (scoreButton) scoreButton.setAttribute("aria-label", `${row.name}: ${scoreButton.querySelector(".mosaic-score").textContent} today. ${row.led} days in first for ${scope} in the last ${statsPeriod} days${leading ? ", leading" : ""}. See their week.`);
+    const piece = badge.closest(".mosaic-piece");
+    if (piece) piece.dataset.leader = String(leading);
+  }
+  document.querySelector("#standings-selection").textContent = "Tap a name to connect their standing with today’s score above.";
+  if (statsFocusPlayer) setStatsPlayer(statsFocusPlayer, records);
+}
+function calendarDates() { return Array.from({length:statsPeriod}, (_, i) => dateKey(statsPeriod - 1 - i)); }
+function updateCalendarSelection(records) {
+  for (const button of document.querySelectorAll(".matrix-table [data-date]")) button.setAttribute("aria-pressed", String(button.dataset.date === selectedStatsDate));
+  if (!selectedStatsDate) {
+    document.querySelector("#day-detail").textContent = "Pick a day above to see everyone’s results together.";
+    return;
+  }
+  const fullDate = new Intl.DateTimeFormat("en-US", {weekday:"long",month:"short",day:"numeric"}).format(new Date(selectedStatsDate + "T12:00:00"));
+  document.querySelector("#day-detail").innerHTML = `<h4>${fullDate} · the whole group</h4>${groups[activeGroup].members.map(name => {
+    const dayRecords = records.filter(record => record.player === name && record.date === selectedStatsDate);
+    return `<div class="day-comparison-line"><strong>${name}</strong><span>${dayRecords.length ? dayRecords.map(record => `${games[record.game].name}: ${resultLabel(record)}`).join(" · ") : "No play recorded"}</span></div>`;
+  }).join("")}`;
+}
+function renderCalendar(records, dates) {
+  const format = key => new Intl.DateTimeFormat("en-US", {month:"short",day:"numeric"}).format(new Date(key + "T12:00:00"));
+  document.querySelector("#calendar-range").textContent = `${format(dates[0])} – ${format(dates.at(-1))}`;
+  const container = document.querySelector("#group-calendar");
+  container.innerHTML = `<table class="matrix-table" aria-label="${groups[activeGroup].name} shared activity calendar"><thead><tr><th scope="col" class="matrix-name">Friend</th>${dates.map(date => {
+    const day = new Intl.DateTimeFormat("en-US", {weekday:"short"}).format(new Date(date + "T12:00:00"));
+    return `<th scope="col"><button class="matrix-date" type="button" data-date="${date}" aria-pressed="${date === selectedStatsDate}" aria-label="Compare everyone on ${date}"><span>${date === dateKey(0) ? "Today" : day}</span><strong>${Number(date.slice(-2))}</strong></button></th>`;
+  }).join("")}</tr></thead><tbody>${groups[activeGroup].members.map((name,index) => `<tr class="heatmap" data-player="${name}" data-highlight="${statsFocusPlayer === name}"><th scope="row" class="matrix-name"><span class="matrix-person"><span class="avatar" aria-hidden="true" style="--avatar:${playerColor(name)}">${name[0]}</span>${name}</span></th>${dates.map(date => {
+    const count = records.filter(record => record.player === name && record.date === date).length;
+    return `<td><button type="button" class="day" data-date="${date}" data-player="${name}" data-level="${Math.min(3,count)}" aria-pressed="${date === selectedStatsDate}" aria-label="${name}, ${date}: ${count} games played. Compare this day." title="${name} · ${date} · ${count} played">${count}</button></td>`;
+  }).join("")}</tr>`).join("")}</tbody></table>`;
+  for (const button of container.querySelectorAll("[data-date]")) button.addEventListener("click", () => {
+    selectedStatsDate = button.dataset.date;
+    if (button.dataset.player) setStatsPlayer(button.dataset.player, records);
+    updateCalendarSelection(records);
+  });
+  updateCalendarSelection(records);
+}
 function renderStats() {
   const group = groups[activeGroup];
   const records = filteredHistory();
-  const dates = Array.from({ length: statsPeriod }, (_, index) => dateKey(statsPeriod - 1 - index));
-  document.querySelector("#stats-title").textContent = `${group.name} stats`;
-  document.querySelector("#stats-summary").innerHTML = metric(records.length, `games played in ${statsPeriod} days`, "◈", "Every attempt counts") + (statsGame === "all" ? metric(new Set(records.map(record => record.date)).size, "days someone played", "☀", "Keeping the puzzle habit going") : metric(average(records), "average winning score", "✦", "Your group’s typical score on solved puzzles")) + metric(records.length ? `${Math.round(records.filter(record => record.won).length / records.length * 100)}%` : "—", "of attempts solved", "★", "A little celebration for every solve");
-  document.querySelector("#stats-explainer").textContent = "Sample history, including today; no live tracking yet. Plays include losses. Averages use solved puzzles only; different games are never averaged together. Days in first place counts days a player had the group’s best solved score in any selected game. Ties count for everyone, and each day counts once. Quillion uses the highest points; other games use the lowest score. Heatmaps show recorded plays, not wins.";
-  document.querySelector("#day-detail").textContent = "Select a day in a player’s heatmap to explore their results.";
-  const container = document.querySelector("#player-stats");
-  container.innerHTML = group.members.map((player, index) => {
-    const own = records.filter(record => record.player === player);
-    const activeDays = new Set(own.map(record => record.date)).size;
-    const led = daysLed(records, player);
-    return `<article class="player-card" style="--player-tone:${colors[index % colors.length]}" aria-label="${player} statistics">
-      <h3><span class="avatar" aria-hidden="true">${player[0]}</span>${player}</h3>
-      <div class="player-numbers">
-        <div class="player-number"><strong>${own.length}</strong><span>Games played</span></div>
-        <div class="player-number"><strong>${own.filter(record => record.won).length}</strong><span>Puzzles solved</span></div>
-        <div class="player-number"><strong>${led} <span aria-hidden="true" style="display:inline">🏆</span></strong><span>Days in first place</span></div>
-        <div class="player-number"><strong>${average(own)}</strong><span>${statsGame === "all" ? "Pick a game for an average" : "Average winning score"}</span></div>
-      </div>
-      <p class="activity-caption"><strong>${activeDays} of ${statsPeriod} days</strong> with a game played</p>
-      <div class="activity-scroll"><div class="heatmap" data-player="${player}"></div></div>
-      <p class="player-help">${led ? `🏆 First place on ${led} ${led === 1 ? "day" : "days"}. Ties count, too!` : "A new chance to take first place every day."}</p>
-    </article>`;
-  }).join("");
-  for (const heatmap of container.querySelectorAll(".heatmap")) {
-    const player = heatmap.dataset.player;
-    for (const date of dates) {
-      const dayRecords = records.filter(record => record.player === player && record.date === date);
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "day";
-      button.dataset.level = Math.min(3, dayRecords.length);
-      button.setAttribute("aria-pressed", "false");
-      button.setAttribute("aria-label", `${player}, ${date}: ${dayRecords.length} games played`);
-      button.title = `${player} · ${date} · ${dayRecords.length} played`;
-      button.addEventListener("click", () => {
-        for (const day of container.querySelectorAll(".day")) day.setAttribute("aria-pressed", String(day === button));
-        document.querySelector("#day-detail").innerHTML = `<h3>${player} · ${date}</h3>${dayRecords.length ? dayRecords.map(record => `${games[record.game].name}: ${resultLabel(record)}`).join("<br>") : "No games recorded for this day and filter."}`;
-      });
-      heatmap.append(button);
-    }
-  }
+  const dates = calendarDates();
+  if (!group.members.includes(statsFocusPlayer)) statsFocusPlayer = null;
+  if (!dates.includes(selectedStatsDate)) selectedStatsDate = null;
+  const togetherDays = dates.filter(date => new Set(records.filter(record => record.date === date).map(record => record.player)).size === group.members.length).length;
+  document.querySelector("#stats-title").textContent = "The friendly race";
+  document.querySelector("#stats-summary").textContent = `${records.length} puzzles recorded together · ${togetherDays} ${togetherDays === 1 ? "day" : "days"} everyone joined in · ${group.name}`;
+  document.querySelector("#stats-explainer").textContent = `A day in first means a group-best solved score in ${statsGame === "all" ? "any group game" : games[statsGame].name}. Ties count for each friend, and a date counts once. ${statsGame === "all" ? "All group games" : games[statsGame].name}, last ${statsPeriod} days. Sample history.`;
+  for (const button of document.querySelectorAll("[data-standing-scope]")) button.setAttribute("aria-pressed", String(button.dataset.standingScope === standingScope));
+  renderComparison(records);
+  renderCalendar(records, dates);
 }
+for (const button of document.querySelectorAll("[data-standing-scope]")) button.addEventListener("click", () => {
+  standingScope = button.dataset.standingScope;
+  statsGame = standingScope === "all" ? "all" : selectedGame;
+  renderStats();
+});
 for (const button of document.querySelectorAll("[data-period]")) {
   button.addEventListener("click", () => {
     statsPeriod = Number(button.dataset.period);
@@ -585,10 +815,9 @@ function assembleBoard(reason) {
     animate(board, [{ transform: "translateX(9px)" }, { transform: "translateX(0)" }], { duration: 280, easing: "cubic-bezier(.2,.8,.2,1)" });
   }
   animate(sourceIcon, [{ transform: "rotate(-7deg) translateY(-3px)" }, { transform: "rotate(3deg)" }, { transform: "rotate(0)" }], { duration: 360, easing: "ease-out" });
-  // Keep real scores stationary and readable. Only decorative initial tiles travel.
-  const tiles = [...board.querySelectorAll(boardView === "tiles" ? ".mosaic-score" : ".score-tile")];
-  tiles.forEach((tile, index) => {
-    const target = tile.getBoundingClientRect();
+  // Real scores remain readable; only decorative score copies travel.
+  const tiles = [...board.querySelectorAll(boardView === "tiles" ? ".mosaic-score" : ".score-tile")].map(tile => ({tile, target:tile.getBoundingClientRect()}));
+  tiles.forEach(({tile, target}, index) => {
     if (!target.width || target.top > innerHeight || target.bottom < 0) return;
     const ghost = document.createElement("span");
     ghost.className = "flying-tile";
@@ -629,17 +858,16 @@ function showPlayerWeek(player) {
   const own = history.filter(record => record.group === activeGroup && record.game === selectedGame && record.player === player && record.date >= dateKey(6));
   const wins = own.filter(record => record.won);
   const todayResult = own.find(record => record.date === dateKey(0));
-  const avg = wins.length ? (wins.reduce((sum, record) => sum + record.value, 0) / wins.length).toFixed(1) : "—";
-  const unit = selectedGame === "connections" ? "mistakes" : selectedGame === "quillion" ? "points" : "guesses";
+  const firstDays = daysLed(history.filter(record => record.group === activeGroup && record.game === selectedGame && record.date >= dateKey(6)), player);
   const dialog = document.querySelector("#score-dialog");
-  dialog.innerHTML = `<div class="dialog-head"><h2 id="score-dialog-title">${player}’s puzzle week</h2><button class="dialog-close" type="button" aria-label="Close player week" autofocus>×</button></div>
+  dialog.innerHTML = `<div class="dialog-head"><h2 id="score-dialog-title">${player}’s puzzle week</h2><button class="dialog-close" type="button" aria-label="Close player week" autofocus>${icon("close")}</button></div>
     <p class="dialog-subtitle">${groups[activeGroup].name} · ${games[selectedGame].name}<br>Today: <strong>${todayResult ? resultLabel(todayResult) : "not played yet"}</strong></p>
     <div class="week-strip">${Array.from({length:7}, (_, i) => {
       const date = dateKey(6 - i);
       const record = own.find(record => record.date === date);
       const day = new Intl.DateTimeFormat("en-US", {weekday:"short"}).format(new Date(date + "T12:00:00"));
-      return `<div class="week-day ${record ? record.won ? "solved" : "lost" : ""}" aria-label="${date}: ${record ? resultLabel(record) : "not played"}"><strong>${record ? record.won ? record.value : "×" : "—"}</strong>${i === 6 ? "Today" : day}</div>`;
-    }).join("")}</div><div class="week-totals"><div><strong>${own.length}</strong>games played</div><div><strong>${wins.length}</strong>puzzles solved</div><div><strong>${avg}</strong>avg. ${unit}</div></div><p class="dialog-note">Sample history · last 7 days. Average uses solved puzzles only. Green tiles are solves; peach tiles are attempts that didn’t solve it.</p>`;
+      return `<div class="week-day ${record ? record.won ? "solved" : "lost" : ""}" aria-label="${date}: ${record ? resultLabel(record) : "not played"}"><strong>${record ? record.won ? record.value : "×" : "—"}<span class="day-mark" aria-hidden="true">${record ? record.won ? "✓" : "×" : "·"}</span></strong>${i === 6 ? "Today" : day}</div>`;
+    }).join("")}</div><div class="week-totals"><div><strong>${own.length}</strong>games played</div><div><strong>${wins.length}</strong>puzzles solved</div><div><strong>${firstDays}</strong>days in first</div></div><p class="dialog-note">Sample history · last 7 days. First-place days include tied best solved scores. Check marks show solves; crosses show unsolved attempts.</p>`;
   dialog.querySelector(".dialog-close").addEventListener("click", () => dialog.close());
   dialog.showModal();
 }
@@ -647,7 +875,7 @@ document.querySelector("#pick-for-me").addEventListener("click", () => {
   const alternatives = Object.keys(groups[activeGroup].games).filter(id => id !== selectedGame);
   const id = alternatives[Math.floor(Math.random() * alternatives.length)] || selectedGame;
   selectGame(id);
-  document.querySelector("#cheer-announcement").textContent = `The dice picked ${games[id].name}!`;
+  document.querySelector("#cheer-announcement").textContent = `Your next little challenge: ${games[id].name}!`;
   if (!reducedMotion.matches) {
     const dice = document.querySelector(".dice");
     const roll = dice.animate([{transform:"rotate(0)"},{transform:"rotate(180deg) scale(1.25)",offset:.5},{transform:"rotate(360deg)"}],{duration:450,easing:"ease-out"});
@@ -655,16 +883,14 @@ document.querySelector("#pick-for-me").addEventListener("click", () => {
     roll.finished.catch(() => {}).finally(() => littleAnimations.delete(roll));
   }
 });
-document.querySelector(".stats-link").addEventListener("click", () => {
-  document.querySelector("#group-stats").open = true;
-});
+
 
 for (const [groupId, group] of Object.entries(groups)) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "group-button";
   button.dataset.group = groupId;
-  button.innerHTML = `<span class="group-symbol" aria-hidden="true">${groupId === "lunch" ? "☀" : "☾"}</span><span>${group.name}</span><span class="group-count">${group.members.length}</span>`;
+  button.innerHTML = `<span class="group-symbol" aria-hidden="true">${icon(groupId === "lunch" ? "sun" : "moon")}</span><span>${group.name}</span><span class="group-count">${group.members.length}</span>`;
   button.setAttribute("aria-label", `${group.name}, ${group.members.length} friends`);
   button.addEventListener("click", () => {
     activeGroup = groupId;
